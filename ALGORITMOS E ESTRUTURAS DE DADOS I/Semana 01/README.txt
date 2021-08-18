@@ -9,8 +9,6 @@
 |    Matrícula: 20103417                                                    |
 -----------------------------------------------------------------------------
 
-O link para os vídeos com as explicações e demonstração dos exercicíos é o que segue. Utilize o domínio @inf.ufpel para acessar.
-https://drive.google.com/drive/folders/1v8bPKSFdtEpjrvvmQ4SG7rvJGqpzCje2?usp=sharing
 
 Exercicio 01:
     Faça uma gravação curta de você criando um projeto "Olá
@@ -32,8 +30,6 @@ Exercicio 02:
     4) Sair
 
 Status: Concluído
-Erros? Sempre após excluir um nome e escolher a opção listar, o valgrind apresenta a mensagem mostrada no print ./Screenshots/exercicio02a.png
-
 
 Exercicio 03:
     • Faça uma agenda capaz de incluir, apagar, buscar e listar
