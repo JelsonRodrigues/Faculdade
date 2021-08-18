@@ -9,6 +9,9 @@
 |    Matrícula: 20103417                                                    |
 -----------------------------------------------------------------------------
 
+O link para os vídeos com as explicações e demonstração dos exercicíos é o que segue. Utilize o domínio @inf.ufpel para acessar.
+https://drive.google.com/drive/folders/1v8bPKSFdtEpjrvvmQ4SG7rvJGqpzCje2?usp=sharing
+
 Exercicio 01:
     Faça uma gravação curta de você criando um projeto "Olá
     Mundo" em C no Visual Code e usando o debug com um
@@ -29,6 +32,8 @@ Exercicio 02:
     4) Sair
 
 Status: Concluído
+Erros? Sempre após excluir um nome e escolher a opção listar, o valgrind apresenta a mensagem mostrada no print ./Screenshots/exercicio02a.png
+
 
 Exercicio 03:
     • Faça uma agenda capaz de incluir, apagar, buscar e listar
@@ -41,3 +46,7 @@ Exercicio 03:
     • Cada pessoa tem nome[10], idade e telefone.
 
 Status: Concluído
+OBS: O exercicio correto é o intitulado exercicio03v2.c  
+    A primeira versão foi feita utilizando lista duplamente encadeada e não atende aos requisitos do exercício.
+	
+
