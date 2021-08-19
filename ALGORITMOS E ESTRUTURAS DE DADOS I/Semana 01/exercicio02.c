@@ -119,13 +119,10 @@ char *excluirEntrada(char *string) {
         for (int c = posicaoEncontrada; c + tamanho_nomeExcluir <= tamanho_stringOriginal; c++){
             string[c] = string[c + tamanho_nomeExcluir];
         }
-        string = (char *) realloc(string, sizeof(char) * (tamanho_stringOriginal - tamanho_nomeExcluir));
-        if (!string && tamanho_stringOriginal - tamanho_nomeExcluir != 0){
+        string = (char *) realloc(string, sizeof(char) * ((tamanho_stringOriginal - tamanho_nomeExcluir) + 1));
+        if (!string){
             printf("Erro ao realocar a memoria.");
             exit(-1);
-        }
-        if (tamanho_stringOriginal - tamanho_nomeExcluir == 0){
-            string = NULL;
         }
         printf("Nome excluido: %s\n", nomeExcluir);
     }
