@@ -9,8 +9,6 @@
 |    Matrícula: 20103417                                                    |
 -----------------------------------------------------------------------------
 
-O vídeo com a explicação dos exercícios está no link: (Acesso via @inf) 
-
 Trabalho 01:
     Continuar a sua implementação da agenda (exercício 3) semana 1 dentro dos mesmo parâmetros, mas incluir o seguinte.
     Nenhuma variável pode ser declarada em todo o programa, somente ponteiros. Todos os dados do programa devem ser guardados dentro do pBuffer.
