@@ -12,11 +12,11 @@ public class LembretesAPP {
         while (true){
             opcao = menu(leitor);
             switch (opcao) {
-            case 1:
+            case 1: // Adicionar lembrete
                 Lembrete novo_lembrete = lerLembrete(leitor);
                 handlerLembretes.adicionarLembrete(novo_lembrete);
                 break;
-            case 2:
+            case 2: // Excluir lembrete
                 if (handlerLembretes.getNumeroLembretes() == 0) {
                     System.out.println("Nenhum Lembrete na lista");
                     continue;
@@ -24,15 +24,15 @@ public class LembretesAPP {
                 Lembrete lembrete_excluir = lerLembrete(leitor);
                 handlerLembretes.excluirLembrete(lembrete_excluir);
                 break;
-            case 3:
+            case 3: // Imprimir lembretes
                 System.out.println("LEMBRETES ARMAZENADOS");
                 handlerLembretes.imprimirLembretes();
                 break;
-            case 4:
+            case 4: // Buscar por data
                 Data data = lerData(leitor);
                 handlerLembretes.buscarPorData(data).imprimirLembretes();
                 break;
-            case 5:
+            case 5: // Buscar por nome
                 System.out.println("Digite o nome: ");
                 String nome = leitor.nextLine();
                 handlerLembretes.buscarPorNome(nome).imprimirLembretes();
