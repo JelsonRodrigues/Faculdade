@@ -219,7 +219,7 @@ void adicionaResultado(Resultado *res, struct timeval *inicio, struct timeval *f
             res->selectionSort[res->num_selection].tv_sec = fim->tv_sec - inicio->tv_sec;
 
             if (res->selectionSort[res->num_selection].tv_usec < 0){
-                res->selectionSort[res->num_selection].tv_usec = 1000000;
+                res->selectionSort[res->num_selection].tv_usec += 1000000;
                 res->selectionSort[res->num_selection].tv_sec--;
             }
 
