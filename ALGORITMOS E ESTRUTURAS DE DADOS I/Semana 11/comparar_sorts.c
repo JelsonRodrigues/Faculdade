@@ -308,8 +308,6 @@ void salvarResultadosPassadas(Resultado *res, uint numero_de_elementos) {
 
     if ((arquivo_final = fopen("resultados.csv", "rt")) != NULL){
         arquivo_ja_existe = true;
-    }
-    else {
         fclose(arquivo_final);
     }
   
