@@ -73,7 +73,7 @@ int main(int argc, char **argv) {
     }
     
     if (tamanho == 0){
-        printf("\nDigite o numero de elementos para sortear: ");
+        printf("\nDigite o numero de elementos para ordenar: ");
         do {
             while (scanf("%u", &tamanho) == 0) {
                 stdin->_IO_read_ptr = stdin->_IO_read_end;
@@ -175,7 +175,7 @@ void adicionaResultado(Resultado *res, struct timeval *inicio, struct timeval *f
             res->quickSort[res->num_quick].tv_sec = fim->tv_sec - inicio->tv_sec;
 
             if (res->quickSort[res->num_quick].tv_usec < 0) {
-                res->quickSort[res->num_quick].tv_usec *= -1;
+                res->quickSort[res->num_quick].tv_usec += 1000000;
                 res->quickSort[res->num_quick].tv_sec--;
             }
 
@@ -192,7 +192,7 @@ void adicionaResultado(Resultado *res, struct timeval *inicio, struct timeval *f
             res->mergeSort[res->num_merge].tv_sec = fim->tv_sec - inicio->tv_sec;
 
             if (res->mergeSort[res->num_merge].tv_usec < 0){
-                res->mergeSort[res->num_merge].tv_usec *= -1;
+                res->mergeSort[res->num_merge].tv_usec += 1000000;
                 res->mergeSort[res->num_merge].tv_sec--;
             }
 
@@ -209,7 +209,7 @@ void adicionaResultado(Resultado *res, struct timeval *inicio, struct timeval *f
             res->insertionSort[res->num_insertion].tv_sec = fim->tv_sec - inicio->tv_sec;
 
             if (res->insertionSort[res->num_insertion].tv_usec < 0){
-                res->insertionSort[res->num_insertion].tv_usec *= -1;
+                res->insertionSort[res->num_insertion].tv_usec += 1000000;
                 res->insertionSort[res->num_insertion].tv_sec--;
             }
             
@@ -226,7 +226,7 @@ void adicionaResultado(Resultado *res, struct timeval *inicio, struct timeval *f
             res->selectionSort[res->num_selection].tv_sec = fim->tv_sec - inicio->tv_sec;
 
             if (res->selectionSort[res->num_selection].tv_usec < 0){
-                res->selectionSort[res->num_selection].tv_usec *= -1;
+                res->selectionSort[res->num_selection].tv_usec += 1000000;
                 res->selectionSort[res->num_selection].tv_sec--;
             }
 
@@ -243,7 +243,7 @@ void adicionaResultado(Resultado *res, struct timeval *inicio, struct timeval *f
             res->bubbleSort[res->num_bubble].tv_sec = fim->tv_sec - inicio->tv_sec;
 
             if (res->bubbleSort[res->num_bubble].tv_usec < 0){
-                res->bubbleSort[res->num_bubble].tv_usec *= -1;
+                res->bubbleSort[res->num_bubble].tv_usec += 1000000;
                 res->bubbleSort[res->num_bubble].tv_sec--; 
             }
 
@@ -293,7 +293,7 @@ void imprimirTempo(struct timeval *inicio, struct timeval *fim, Algoritmo algori
     time_t diferenca_segundos = (fim->tv_sec - inicio->tv_sec);
     suseconds_t diferenca_micro_segundos = (fim->tv_usec - inicio->tv_usec);
     if (diferenca_micro_segundos < 0) {
-        diferenca_micro_segundos *= -1;
+        diferenca_micro_segundos += 1000000;
         diferenca_segundos--;
     }
     uint minutos = diferenca_segundos / 60;

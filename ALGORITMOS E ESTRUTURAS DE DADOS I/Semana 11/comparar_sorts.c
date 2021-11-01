@@ -68,7 +68,7 @@ int main(int argc, char **argv) {
     }
     
     if (tamanho == 0){
-        printf("\nDigite o numero de elementos para sortear: ");
+        printf("\nDigite o numero de elementos para ordenar: ");
         do {
             while (scanf("%u", &tamanho) == 0) {
                 stdin->_IO_read_ptr = stdin->_IO_read_end;
@@ -84,57 +84,54 @@ int main(int argc, char **argv) {
     int *vetor_ordenar = NULL;
     uint passadas = 5;
     
-    //for (uint c = 1; c <= 20; c++) {
-        resultados = criaResultado();
+    resultados = criaResultado();
+    
+    vetor = criarVetorAleatorio(tamanho);
+    vetor_ordenar = criarVetorAleatorio(tamanho);
+    printf("\nColetando dados para vetor com tamanho: %d", tamanho);
+    for (uint i = 0; i < passadas; i++) {
+        printf("\nPassada %d/%d\n", i+1, passadas);
+        memcpy(vetor_ordenar, vetor, tamanho * sizeof(int));
+        gettimeofday(&inicio, 0);
+        ordenar(vetor_ordenar, tamanho, QUICK_SORT);
+        gettimeofday(&fim, 0);
+        imprimirTempo(&inicio, &fim, QUICK_SORT);
+        adicionaResultado(&resultados, &inicio, &fim, QUICK_SORT);
+
+        memcpy(vetor_ordenar, vetor, tamanho * sizeof(int));
+        gettimeofday(&inicio, 0);
+        ordenar(vetor_ordenar, tamanho, MERGE_SORT);
+        gettimeofday(&fim, 0);
+        imprimirTempo(&inicio, &fim, MERGE_SORT);
+        adicionaResultado(&resultados, &inicio, &fim, MERGE_SORT);
         
-        //tamanho += 10000;
-        vetor = criarVetorAleatorio(tamanho);
-        vetor_ordenar = criarVetorAleatorio(tamanho);
-        printf("\nColetando dados para vetor com tamanho: %d", tamanho);
-        for (uint i = 0; i < passadas; i++) {
-            printf("\nPassada %d/%d\n", i+1, passadas);
-            memcpy(vetor_ordenar, vetor, tamanho * sizeof(int));
-            gettimeofday(&inicio, 0);
-            ordenar(vetor_ordenar, tamanho, QUICK_SORT);
-            gettimeofday(&fim, 0);
-            imprimirTempo(&inicio, &fim, QUICK_SORT);
-            adicionaResultado(&resultados, &inicio, &fim, QUICK_SORT);
+        memcpy(vetor_ordenar, vetor, tamanho * sizeof(int));
+        gettimeofday(&inicio, 0);
+        ordenar(vetor_ordenar, tamanho, INSERTION_SORT);
+        gettimeofday(&fim, 0);
+        imprimirTempo(&inicio, &fim, INSERTION_SORT);
+        adicionaResultado(&resultados, &inicio, &fim, INSERTION_SORT);
 
-            memcpy(vetor_ordenar, vetor, tamanho * sizeof(int));
-            gettimeofday(&inicio, 0);
-            ordenar(vetor_ordenar, tamanho, MERGE_SORT);
-            gettimeofday(&fim, 0);
-            imprimirTempo(&inicio, &fim, MERGE_SORT);
-            adicionaResultado(&resultados, &inicio, &fim, MERGE_SORT);
-            
-            memcpy(vetor_ordenar, vetor, tamanho * sizeof(int));
-            gettimeofday(&inicio, 0);
-            ordenar(vetor_ordenar, tamanho, INSERTION_SORT);
-            gettimeofday(&fim, 0);
-            imprimirTempo(&inicio, &fim, INSERTION_SORT);
-            adicionaResultado(&resultados, &inicio, &fim, INSERTION_SORT);
+        memcpy(vetor_ordenar, vetor, tamanho * sizeof(int));
+        gettimeofday(&inicio, 0);
+        ordenar(vetor_ordenar, tamanho, SELECTION_SORT);
+        gettimeofday(&fim, 0);
+        imprimirTempo(&inicio, &fim, SELECTION_SORT);
+        adicionaResultado(&resultados, &inicio, &fim, SELECTION_SORT);
+        
+        memcpy(vetor_ordenar, vetor, tamanho * sizeof(int));
+        gettimeofday(&inicio, 0);
+        ordenar(vetor_ordenar, tamanho, BUBBLE_SORT);
+        gettimeofday(&fim, 0);
+        imprimirTempo(&inicio, &fim, BUBBLE_SORT);
+        adicionaResultado(&resultados, &inicio, &fim, BUBBLE_SORT);
+    }
 
-            memcpy(vetor_ordenar, vetor, tamanho * sizeof(int));
-            gettimeofday(&inicio, 0);
-            ordenar(vetor_ordenar, tamanho, SELECTION_SORT);
-            gettimeofday(&fim, 0);
-            imprimirTempo(&inicio, &fim, SELECTION_SORT);
-            adicionaResultado(&resultados, &inicio, &fim, SELECTION_SORT);
-            
-            memcpy(vetor_ordenar, vetor, tamanho * sizeof(int));
-            gettimeofday(&inicio, 0);
-            ordenar(vetor_ordenar, tamanho, BUBBLE_SORT);
-            gettimeofday(&fim, 0);
-            imprimirTempo(&inicio, &fim, BUBBLE_SORT);
-            adicionaResultado(&resultados, &inicio, &fim, BUBBLE_SORT);
-        }
+    free(vetor_ordenar);
+    free(vetor);
 
-        free(vetor_ordenar);
-        free(vetor);
-
-        salvarResultadosPassadas(&resultados, tamanho);
-        liberarResultados(&resultados);
-    //}
+    salvarResultadosPassadas(&resultados, tamanho);
+    liberarResultados(&resultados);
     
     printf("\nFIM\n");
     return EXIT_SUCCESS;
@@ -171,8 +168,8 @@ void adicionaResultado(Resultado *res, struct timeval *inicio, struct timeval *f
             res->quickSort[res->num_quick].tv_sec = fim->tv_sec - inicio->tv_sec;
 
             if (res->quickSort[res->num_quick].tv_usec < 0){
+                res->quickSort[res->num_quick].tv_usec += 1000000;
                 res->quickSort[res->num_quick].tv_sec--;
-                res->quickSort[res->num_quick].tv_usec *= -1;
             }
 
             res->num_quick++;
@@ -188,8 +185,8 @@ void adicionaResultado(Resultado *res, struct timeval *inicio, struct timeval *f
             res->mergeSort[res->num_merge].tv_sec = fim->tv_sec - inicio->tv_sec;
 
             if (res->mergeSort[res->num_merge].tv_usec < 0){
+                res->mergeSort[res->num_merge].tv_usec += 1000000;
                 res->mergeSort[res->num_merge].tv_sec--;
-                res->mergeSort[res->num_merge].tv_usec *= -1;
             }
 
             res->num_merge++;
@@ -205,8 +202,8 @@ void adicionaResultado(Resultado *res, struct timeval *inicio, struct timeval *f
             res->insertionSort[res->num_insertion].tv_sec = fim->tv_sec - inicio->tv_sec;
 
             if (res->insertionSort[res->num_insertion].tv_usec < 0){
+                res->insertionSort[res->num_insertion].tv_usec += 1000000;
                 res->insertionSort[res->num_insertion].tv_sec--;
-                res->insertionSort[res->num_insertion].tv_usec *= -1;
             }
             
             res->num_insertion++;
@@ -222,8 +219,8 @@ void adicionaResultado(Resultado *res, struct timeval *inicio, struct timeval *f
             res->selectionSort[res->num_selection].tv_sec = fim->tv_sec - inicio->tv_sec;
 
             if (res->selectionSort[res->num_selection].tv_usec < 0){
+                res->selectionSort[res->num_selection].tv_usec = 1000000;
                 res->selectionSort[res->num_selection].tv_sec--;
-                res->selectionSort[res->num_selection].tv_usec *= -1;
             }
 
             res->num_selection++;
@@ -239,8 +236,8 @@ void adicionaResultado(Resultado *res, struct timeval *inicio, struct timeval *f
             res->bubbleSort[res->num_bubble].tv_sec = fim->tv_sec - inicio->tv_sec;
 
             if (res->bubbleSort[res->num_bubble].tv_usec < 0){
+                res->bubbleSort[res->num_bubble].tv_usec += 1000000;
                 res->bubbleSort[res->num_bubble].tv_sec--;
-                res->bubbleSort[res->num_bubble].tv_usec *= -1;
             }
 
             res->num_bubble++;
@@ -289,7 +286,7 @@ void imprimirTempo(struct timeval *inicio, struct timeval *fim, Algoritmo algori
     time_t diferenca_segundos = (fim->tv_sec - inicio->tv_sec);
     suseconds_t diferenca_micro_segundos = (fim->tv_usec - inicio->tv_usec);
     if (diferenca_micro_segundos < 0) {
-        diferenca_micro_segundos *= -1;
+        diferenca_micro_segundos += 1000000;
         diferenca_segundos--;
     }
     uint minutos = diferenca_segundos / 60;
@@ -305,17 +302,6 @@ void imprimirTempo(struct timeval *inicio, struct timeval *fim, Algoritmo algori
 }
 
 void salvarResultadosPassadas(Resultado *res, uint numero_de_elementos) {
-    
-    /*
-    // O logaritmo de um número na base que ele está representado arredondado para cima é o número de dígitos necessários para representá-lo
-    // ex.: 236 -> log10(236) = 2,37... -> ceil(2.37...) = 3
-    // então soma-se 1 para a string guardar o caractere terminador \0
-    // Abaixo eu arredondo para baixo e somo com 2
-    uint digitos_necessarios = ((int) log10(numero_de_elementos) + 2);
-    char *numero_como_string = (char *) malloc(sizeof(char) * digitos_necessarios );
-    snprintf(numero_como_string, digitos_necessarios, "%u", numero_de_elementos);
-    */
-
     bool arquivo_ja_existe = false;
 
     FILE *arquivo_final;
