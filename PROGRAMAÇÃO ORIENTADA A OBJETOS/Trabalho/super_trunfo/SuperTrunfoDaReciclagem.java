@@ -17,7 +17,7 @@ public class SuperTrunfoDaReciclagem {
     private ArrayList<Carta> cartas_comparando;
     private Jogador jogador_atual;
     private Baralho baralho;
-    private final int cartas_por_jogador = 2;
+    private final int cartas_por_jogador = 10;
     public final int numero_maximo_jogadores = 4;
     public final int numero_minimo_jogadores = 2;
 
