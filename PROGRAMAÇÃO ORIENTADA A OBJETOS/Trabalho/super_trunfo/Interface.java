@@ -10,7 +10,7 @@ import java.util.Random;
 import java.util.ArrayList;
 
 public class Interface {
-    public static void main(String[] args){
+    public static void main(String[] args) {
         simular();
         //jogar();
     }
@@ -33,7 +33,6 @@ public class Interface {
 
         //fakeProcessando();
         imprimirNovasLinhas(4);
-
         /* inicio do jogo */
         try {
             game.iniciar();
@@ -62,12 +61,12 @@ public class Interface {
             }
             imprimirNovasLinhas(1);
             
-            System.out.println("OS JOGADORES ATIVOS SÃO");
-            //fakeProcessando();
-            game.imprimirJogadores();
             jogador_atual = game.getJogadorAtual();
             game.atualizarJogadoresRodada();
-
+            System.out.println("OS JOGADORES ATIVOS SÃO");
+            //fakeProcessando();
+            game.imprimirJogadoresRodada();
+            
             //inserirPausa(500l);
             System.out.println("\nO JOGADOR ATUAL É");
             jogador_atual.imprimir();
@@ -103,16 +102,14 @@ public class Interface {
                 System.out.println("O JOGADOR ATUAL É");
                 jogador_atual.imprimir();
                 
-
                 jogador_atual.verCarta();
                 categoria = Categoria.inteiroParaCategoria(aleatorio.nextInt(4) + 1);
                 System.out.println("O JOGADOR " + jogador_atual.getNome() + " ESCOLHEU COMPARAR PELA CATEGORIA " + categoria.toString());
                 //inserirPausa(250l);
                 //fakeProcessando();
-
-                game.imprimirCartasRodada();
-
-                game.rodada(categoria);
+                
+                jogadores_inicio_rodada = game.rodada(categoria);
+                SuperTrunfoDaReciclagem.imprimirCartasRodada(jogadores_inicio_rodada, game.getCartasComparando());
             }
 
             //inserirPausa(250l);
@@ -186,11 +183,11 @@ public class Interface {
             }
             imprimirNovasLinhas(1);
             
-            System.out.println("OS JOGADORES ATIVOS SÃO");
-            fakeProcessando();
-            game.imprimirJogadores();
             jogador_atual = game.getJogadorAtual();
             game.atualizarJogadoresRodada();
+            System.out.println("OS JOGADORES ATIVOS SÃO");
+            fakeProcessando();
+            game.imprimirJogadoresRodada();
 
             inserirPausa(500l);
             System.out.println("\nO JOGADOR ATUAL É");

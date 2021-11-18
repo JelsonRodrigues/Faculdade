@@ -105,8 +105,14 @@ public abstract class Carta {
         if (esta_carta.equals(Cor.VERDE) && outra_carta.equals(Cor.LARANJA)) return 0;
         if (esta_carta.equals(Cor.ROXO) && outra_carta.equals(Cor.MARROM)) return 0;
         if (esta_carta.equals(Cor.MARROM) && outra_carta.equals(Cor.ROXO)) return 0;
-
+        
         switch (esta_carta) {
+            case MAIOR:
+                return 1;
+            case MENOR:
+                return -1;
+            case INDEFINIDA: 
+                return 0;
             case VERMELHO:
                 switch (outra_carta) {
                     case AMARELO: return 1;
@@ -197,12 +203,6 @@ public abstract class Carta {
                     case VERMELHO: return 1;
                     default: return -1;
                 }
-            case MAIOR:
-                return 1;
-            case MENOR:
-                return -1;
-            case INDEFINIDA: 
-                return 0;
         }
         return 0;
     }
