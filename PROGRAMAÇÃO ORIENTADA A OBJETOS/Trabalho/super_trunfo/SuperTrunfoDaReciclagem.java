@@ -141,20 +141,19 @@ public class SuperTrunfoDaReciclagem {
         }
         return jogadores;
     }
-    
+
     // Vai salvar em jogadores_rodada o jogador que venceu, ou uma lista com os jogadores empatados
     // Ainda atualiza as cartas da mesa e retorna os jogadores que estavam no início da rodada
     public ArrayList<Jogador> rodada(Categoria categoria) {
         // Este método assume que os jogadores estão na rodada estão salvos na variável jogadores_rodada
         ArrayList<Jogador> jogadores_inicio_rodada = copiarJogadores(jogadores_rodada);
-        jogadores_rodada = copiarJogadores(jogadores_ativos);
         cartasRodada();
         int[] resultado_comparacao = compararCartas(categoria);
         jogadores_rodada = vencedorRodada(resultado_comparacao);
         atualizarVencedor();
         return jogadores_inicio_rodada;
     }
-    
+
     // Distribui as cartas para os jogadores ativos
     private void distribuirCartas() {
         for (int c = 0; c < jogadores_ativos.size() * this.cartas_por_jogador; c++) {
@@ -264,7 +263,9 @@ public class SuperTrunfoDaReciclagem {
         int indice_carta_ganhadora = 0;
         ArrayList<Jogador> jogadores_empatados = new ArrayList<Jogador>();
 
-        for (int c = 0; c < jogadores_rodada.size(); c++) {
+        // O erro é que eu estou pegando o índice de cartas rodada pelo jogadores rodada.
+        // Eles não eram para ter tamanhos diferentes, mas se tiverem dá erro
+        for (int c = 0; c < comparacao_cartas.length; c++) {
             if (comparacao_cartas[c] > comparacao_cartas[indice_carta_ganhadora]) {
                 indice_carta_ganhadora = c;
                 jogadores_empatados.clear();
@@ -294,8 +295,8 @@ public class SuperTrunfoDaReciclagem {
     }
     private static ArrayList<Jogador> removerJogadoresSemCartas(ArrayList<Jogador> jogadores) {
         ArrayList<Jogador> jogadores_removidos = new ArrayList<Jogador>();
-        for (int c = 0; c < jogadores.size(); c++){
-            if (jogadores.get(c).temCartas() == false){
+        for (int c = 0; c < jogadores.size(); c++) {
+            if (jogadores.get(c).temCartas() == false) {
                 jogadores_removidos.add(jogadores.remove(c));
                 c--;
             }
