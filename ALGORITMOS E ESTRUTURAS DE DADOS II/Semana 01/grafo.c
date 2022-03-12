@@ -2,17 +2,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// Cheio de memory leak e erros
-
 typedef char * string;
-
-typedef struct {
-    string nome;
-} Dado;
 
 // Nodo
 typedef struct {
-    Dado *informacao;
+    string nome;
 } Nodo;
 
 
@@ -35,15 +29,11 @@ typedef struct {
 } Grafo;
 
 // Protótipos das funções
-Nodo *criaNodo(Dado *dado_do_nodo);
+Nodo *criaNodo(string nome);
 void imprimirNodo(Nodo *nodo_imprimir);
 void imprimirNodoLista(void *nodo_imprimir);
 void liberarNodo(Nodo *nodo_liberar);
 void liberarNodoLista(void *nodo_liberar);
-
-Dado *criaDado(string nome_cidade);
-void imprimirDado(Dado *dado_imprimir);
-void liberarDado(Dado *dado_liberar);
 
 Lista *criaLista();
 void adicionaItemLista(Lista **lista, void *item);
@@ -59,30 +49,33 @@ int main() {
     g1.nos = criaLista();
     g1.arestas = criaLista();
 
-    adicionaItemLista(&g1.nos, (void *) criaNodo(criaDado("Maria")));
-    adicionaItemLista(&g1.nos, (void *) criaNodo(criaDado("Pedro")));
-    adicionaItemLista(&g1.nos, (void *) criaNodo(criaDado("Luiz")));
-    adicionaItemLista(&g1.nos, (void *) criaNodo(criaDado("Joana")));
+    adicionaItemLista(&g1.nos, (void *) criaNodo("Maria"));
+    adicionaItemLista(&g1.nos, (void *) criaNodo("Pedro"));
+    adicionaItemLista(&g1.nos, (void *) criaNodo("Luiz"));
+    adicionaItemLista(&g1.nos, (void *) criaNodo("Joana"));
 
     imprimirLista(g1.nos, &imprimirNodoLista);
+    printf("\n");
     liberarLista(&g1.nos, &liberarNodoLista);
+    liberarLista(&g1.arestas, &liberarNodoLista);   // Criar uma função para liberar arestas
 
     return 0;
 }
 
-Nodo *criaNodo(Dado *dado_do_nodo) {
-    if (!dado_do_nodo) return (Nodo *) NULL;
+Nodo *criaNodo(string nome) {
+    if (!nome) return (Nodo *) NULL;
     
     Nodo *novo_nodo = (Nodo *) malloc(sizeof(Nodo));
     if (!novo_nodo) return (Nodo *) NULL;
     
-    novo_nodo->informacao = dado_do_nodo;
+    novo_nodo->nome = nome;
 
     return novo_nodo;
 }
+
 void imprimirNodo(Nodo *nodo_imprimir){
     if (nodo_imprimir) {
-        imprimirDado(nodo_imprimir->informacao);
+        printf("\nNome: %s", nodo_imprimir->nome);
     }
 }
 void imprimirNodoLista(void *nodo_imprimir){
@@ -90,33 +83,11 @@ void imprimirNodoLista(void *nodo_imprimir){
 }
 void liberarNodo(Nodo *nodo_liberar) {
     if (nodo_liberar) {
-        liberarDado(nodo_liberar->informacao);
         free(nodo_liberar);
     }
 }
 void liberarNodoLista(void *nodo_liberar){
     liberarNodo((Nodo *) nodo_liberar);
-}
-
-Dado *criaDado(string nome_cidade){
-    if (!nome_cidade) return (Dado *) NULL;
-
-    Dado *novo_dado = (Dado *) malloc(sizeof(Dado));
-    if (!novo_dado) return (Dado *) NULL;
-
-    novo_dado->nome = nome_cidade;
-    
-    return novo_dado;
-}
-void imprimirDado(Dado *dado_imprimir) {
-    if (dado_imprimir){
-        printf("\nNome: %s", dado_imprimir->nome);
-    }
-}
-void liberarDado(Dado *dado_liberar){
-    if (dado_liberar){
-        free(dado_liberar);
-    }
 }
 
 Lista *criaLista(){
@@ -184,11 +155,12 @@ void imprimirLista(Lista *lista, void (*funcao_imprime)(void *)){
 }
 void liberarLista(Lista **lista, void (*fucao_libera)(void *)){
     Lista *item = primeiroItem(*lista);
-    Lista *proximo_item = item->proximo;
+    Lista *proximo_item = NULL;
     while (item)
     {
         proximo_item = item->proximo;
-        fucao_libera(item);
+        fucao_libera(item->dado);
+        free(item);
         item = proximo_item;
     }
     lista = NULL;
