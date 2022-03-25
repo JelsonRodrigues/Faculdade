@@ -2,7 +2,11 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <sys/types.h>
+<<<<<<< HEAD
 #include <string.h>
+=======
+#include <stdint.h>
+>>>>>>> refs/remotes/origin/main
 
 #define NUMERO_MAXIMO_VERTICES 20
 
@@ -27,7 +31,11 @@ Nodo lerNodo();
 /* Grafo */
 typedef struct {
     Nodo *nos;
+<<<<<<< HEAD
     uint numero_nos;
+=======
+    uint8_t numero_nos; // Já que o máximo é 20
+>>>>>>> refs/remotes/origin/main
     float **pesos;
 } Grafo;
 Grafo *criaGrafo();
@@ -36,7 +44,10 @@ bool nodoPertenceAoGrafo(Grafo *grafo, Nodo no);
 void alterarConexoesNo(Grafo *grafo);
 void imprimirGrafo(Grafo *g1);
 void liberarGrafo(Grafo *g1);
+<<<<<<< HEAD
 int maiorStringTamanho(Nodo *nos, int numero_nos);
+=======
+>>>>>>> refs/remotes/origin/main
 
 
 /* Modelagem do grafo como uma matriz */
@@ -168,11 +179,14 @@ void adicionarNo(Grafo *grafo){
         printf("Não foi possível adicionar o nó!");
         return;
     }
+    
+    /*
     grafo->pesos[grafo->numero_nos-1] = calloc(grafo->numero_nos, sizeof(float));
     if (grafo->pesos[grafo->numero_nos-1] == NULL) {
         printf("Não foi possível adicionar o nó!");
         return;
     }
+    */
 
     // Adiciona uma nova coluna em cada vetor
     for (uint c = 0; c < grafo->numero_nos; c++) {
