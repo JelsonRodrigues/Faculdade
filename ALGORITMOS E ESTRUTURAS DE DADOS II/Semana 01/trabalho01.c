@@ -2,16 +2,9 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <sys/types.h>
+#include <string.h>
 
 #define NUMERO_MAXIMO_VERTICES 20
-
-/*
-TODO
-arruamar as mensagens, e a exibição do grafo
-Testar, debugar
-Dá pra aprimorar salvando apenas a parte de baixo da matriz já que o grafo é não orientado ??
-Se for colocar o grafo para ter orientação, precisa alterar a função altera conexão
-*/
 
 /* Outros */
 typedef unsigned int uint;
@@ -19,7 +12,7 @@ int lerNumeroInteiro();
 float lerNumeroReal();
 
 /* Menu */
-typedef enum { ADICIONAR_NO = 1, MOSTRAR_GRAFO = 2, SAIR = 3 } OpcoesMenu;
+typedef enum { ADICIONAR_NO = 1, MOSTRAR_GRAFO = 2, ALTERAR_ARESTAS = 3,  SAIR = 4 } OpcoesMenu;
 OpcoesMenu menu();
 void limparEntrada(FILE *entrada);
 
@@ -34,7 +27,7 @@ Nodo lerNodo();
 /* Grafo */
 typedef struct {
     Nodo *nos;
-    u_int32_t numero_nos;
+    uint numero_nos;
     float **pesos;
 } Grafo;
 Grafo *criaGrafo();
@@ -42,6 +35,8 @@ void adicionarNo(Grafo *grafo);
 bool nodoPertenceAoGrafo(Grafo *grafo, Nodo no);
 void alterarConexoesNo(Grafo *grafo);
 void imprimirGrafo(Grafo *g1);
+void liberarGrafo(Grafo *g1);
+int maiorStringTamanho(Nodo *nos, int numero_nos);
 
 
 /* Modelagem do grafo como uma matriz */
@@ -62,6 +57,9 @@ int main() {
             break;
         case MOSTRAR_GRAFO:
             imprimirGrafo(g1);
+            break;
+        case ALTERAR_ARESTAS:
+            alterarConexoesNo(g1);
             break;
         case SAIR:
             liberarGrafo(g1);
@@ -98,6 +96,7 @@ Grafo *criaGrafo() {
     if (temp) {
         temp->nos = NULL;
         temp->numero_nos = 0;
+        temp->pesos = NULL;
     }
     return temp;
 }
@@ -109,11 +108,13 @@ OpcoesMenu menu(){
         printf("\nDIGITE UMA OPÇÃO");
         printf("\n\t%d. ADICIONAR NÓ AO GRAFO", ADICIONAR_NO);
         printf("\n\t%d. MOSTRAR O GRAFO", MOSTRAR_GRAFO);
+        printf("\n\t%d. ALTERAR ARESTAS", ALTERAR_ARESTAS);
         printf("\n\t%d. SAIR", SAIR);
         printf("\n");
         escolha = lerNumeroInteiro();
     } while (escolha != ADICIONAR_NO &&
             escolha != MOSTRAR_GRAFO && 
+            escolha != ALTERAR_ARESTAS &&
             escolha != SAIR);
     
     return escolha;
@@ -122,7 +123,6 @@ OpcoesMenu menu(){
 void limparEntrada(FILE *entrada){
     while (getc(entrada) != EOF);
 }
-
 
 Nodo criaNodo(char *nome){
     Nodo temp = {.nome_cidade=nome};
@@ -136,6 +136,12 @@ Nodo lerNodo() {
     
     printf("\nDigite o nome da cidade: ");
     getline(&nome, &numero_caracteres, stdin);
+
+    // Remove o enter do final
+    int tamanho_nome = strlen(nome);
+    if (nome[tamanho_nome - 1] == '\n') {
+        nome[tamanho_nome - 1] = '\0';
+    }
 
     no.nome_cidade = nome;
     return no;
@@ -179,42 +185,69 @@ void adicionarNo(Grafo *grafo){
     }
 
 }
-void imprimirGrafo(Grafo *g1){
+void imprimirGrafo(Grafo *g1) {
     if (g1){
-        printf("\t|");
-        for (uint c = 0; c < g1->numero_nos; c++){
-            printf("% 10s | ", g1->nos[c]);
+        if (g1->numero_nos == 0) {
+            printf("O grafo está vazio.\n");
+            return;
         }
 
+        int tamanho_maior_nome = maiorStringTamanho(g1->nos, g1->numero_nos);
+
+        // Mostra o nome de cada coluna
+        printf("%16s", " | ");
         for (uint c = 0; c < g1->numero_nos; c++){
-            printf("\n% 10s | ", g1->nos[c]);
+            printf("%-13s | ", g1->nos[c].nome_cidade);
+        }
+
+        // Imprime cada linha e o conteúdo
+        for (uint c = 0; c < g1->numero_nos; c++){
+            printf("\n%+13s | ", g1->nos[c].nome_cidade);
             for (uint i = 0; i < g1->numero_nos; i++) {
-                printf("%10.3f | ", g1->pesos[c][i]);
+                printf("%-13.3f | ", g1->pesos[c][i]);
             }
         }
 
     }
 }
+
+int maiorStringTamanho(Nodo *nos, int numero_nos) {
+    int maior = 0;
+
+    for (int c = 0; c < numero_nos; c++) {
+        if (c == 0) {
+            maior = strlen(nos[c].nome_cidade);
+        }
+
+        if (strlen(nos[c].nome_cidade) > maior) {
+            maior = strlen(nos[c].nome_cidade);
+        }
+
+    }
+
+    return maior;
+
+}
 void alterarConexoesNo(Grafo *grafo) {
     if (!grafo) return;
     for (uint c = 0; c < grafo->numero_nos; c++) {
-        printf("\n% 2u - %s", c+1,  grafo->nos[c]);
+        printf("\n%02u - %s", c+1,  grafo->nos[c].nome_cidade);
     }
-    int posicao_primeiro_no = 0;
+    uint posicao_primeiro_no = 0;
     do {
         printf("\nDigite o número do primeiro nodo da conexão: ");
         posicao_primeiro_no = lerNumeroInteiro();
-    } while (posicao_primeiro_no <= 0 || posicao_primeiro_no > grafo->numero_nos);
+    } while (posicao_primeiro_no <= 0 ||  posicao_primeiro_no > grafo->numero_nos);
     
-    int posicao_segundo_no = 0;
+    uint posicao_segundo_no = 0;
     do {
         printf("\nDigite o número do segundo nodo da conexão: ");
         posicao_segundo_no = lerNumeroInteiro();
     } while (posicao_segundo_no <= 0 || posicao_segundo_no > grafo->numero_nos);
 
     printf("\n\nOs nodos selecionados foram");
-    printf("\n%s", grafo->nos[posicao_primeiro_no-1]);
-    printf("\n%s", grafo->nos[posicao_segundo_no-1]);
+    printf("\n%s", grafo->nos[posicao_primeiro_no-1].nome_cidade);
+    printf("\n%s", grafo->nos[posicao_segundo_no-1].nome_cidade);
     printf("\nO valor da conexão atual entre estes nodos é %.03f", grafo->pesos[posicao_primeiro_no-1][posicao_segundo_no-1]);
     printf("\n");
 
@@ -229,9 +262,9 @@ void alterarConexoesNo(Grafo *grafo) {
     return;
 }
 
-
 void liberarGrafo(Grafo *g1){
     if (g1){
+        // Libera o espaço do nome da cidade
         for (uint c = 0; c < g1->numero_nos ; c++){
             free(g1->nos[c].nome_cidade);
         }
@@ -243,5 +276,7 @@ void liberarGrafo(Grafo *g1){
         free(g1->pesos);
         g1->pesos = NULL;
         g1->numero_nos = 0;
+        
+        free(g1);
     }
 }
