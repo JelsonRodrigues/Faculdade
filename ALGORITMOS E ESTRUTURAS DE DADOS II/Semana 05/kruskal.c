@@ -41,8 +41,10 @@ typedef struct {
 } Grafo;
 Grafo *criaGrafo();
 void adicionarNo(Grafo *grafo);
+void inserirNoGrafo(Grafo *grafo, Nodo no);
 bool nodoPertenceAoGrafo(Grafo *grafo, Nodo no);
 void alterarConexoesNo(Grafo *grafo);
+void alteraPesoAresta(Grafo *grafo, uint posicao_primeiro_no, uint posicao_segundo_no, float nova_conexao);
 void imprimirGrafo(Grafo *g1);
 void liberarGrafo(Grafo *g1);
 uint maiorStringTamanho(Nodo *nos, int numero_nos);
@@ -55,8 +57,10 @@ typedef struct {
 VerticesAdjacentes verticesAdjacentes(Grafo *grafo, int posicao_no);
 
 /* Kruskal */
-void mostrarArvoreMinima(Grafo *grafo);
-
+typedef struct {
+    int indice_vertice;
+    int conjunto_pertence;
+} AuxVertice;
 typedef struct {
     int indice_no_01;
     int indice_no_02;
@@ -66,6 +70,13 @@ typedef struct {
     Aresta *arestas;
     int tamanho;
 } VetorArestas;
+void mostrarArvoreMinima(Grafo *grafo);
+Grafo *kruskal(Grafo *grafo);
+void uniaoDeConjuntos(AuxVertice *vertices_auxiliar, int tamanho, int conjunto1, int conjunto2);
+bool pertenceAoMesmoConjunto(AuxVertice *conjunto_vertices, int vertice01, int vertice02);
+VetorArestas arestas_do_grafo(Grafo *grafo);
+AuxVertice *incializaAuxVertices(Grafo *grafo);
+
 
 /* Modelagem do grafo como uma matriz */
 int main() {
@@ -184,35 +195,41 @@ void adicionarNo(Grafo *grafo){
     if (grafo == NULL) return;
 
     Nodo nodo_adicionar = lerNodo();
-
-    // Aumenta o vetor que contém os nós
-    grafo->nos = realloc(grafo->nos, sizeof(Nodo) * (grafo->numero_nos +1));
-    if (grafo->nos == NULL) {
-        printf("Não foi possível adicionar o nó!");
-        return;
-    }
-    grafo->nos[grafo->numero_nos] = nodo_adicionar;
-    grafo->numero_nos++;
-
-    // Como o grafo vai ser não direcionado, então a matriz de representação é simétrica
-    // Por isso eu vou salvar apenas a parte de baixo da matriz
-    
-    // Aumenta o número de linhas da matriz dos pesos
-    grafo->pesos = realloc(grafo->pesos, sizeof(float *) * grafo->numero_nos);
-    if (grafo->pesos == NULL) {
-        printf("Não foi possível adicionar o nó!");
-        return;
-    }
-
-    // Apenas a útima linha vai ter o mesmo número colunas que o número de nós no grafo
-    grafo->pesos[grafo->numero_nos-1] = calloc(grafo->numero_nos, sizeof(float));
-    if (grafo->pesos[grafo->numero_nos-1] == NULL) {
-        printf("Não foi possível adicionar o nó!");
-        return;
-    }
+    inserirNoGrafo(grafo, nodo_adicionar);
 
     return;
 }
+
+void inserirNoGrafo(Grafo *grafo, Nodo no) {
+    if (grafo){
+        // Aumenta o vetor que contém os nós
+        grafo->nos = realloc(grafo->nos, sizeof(Nodo) * (grafo->numero_nos +1));
+        if (grafo->nos == NULL) {
+            printf("Não foi possível adicionar o nó!");
+            return;
+        }
+        grafo->nos[grafo->numero_nos] = no;
+        grafo->numero_nos++;
+
+        // Como o grafo vai ser não direcionado, então a matriz de representação é simétrica
+        // Por isso eu vou salvar apenas a parte de baixo da matriz
+        
+        // Aumenta o número de linhas da matriz dos pesos
+        grafo->pesos = realloc(grafo->pesos, sizeof(float *) * grafo->numero_nos);
+        if (grafo->pesos == NULL) {
+            printf("Não foi possível adicionar o nó!");
+            return;
+        }
+
+        // Apenas a útima linha vai ter o mesmo número colunas que o número de nós no grafo
+        grafo->pesos[grafo->numero_nos-1] = calloc(grafo->numero_nos, sizeof(float));
+        if (grafo->pesos[grafo->numero_nos-1] == NULL) {
+            printf("Não foi possível adicionar o nó!");
+            return;
+        }
+    }
+}
+
 void imprimirGrafo(Grafo *g1) {
     if (g1){
         if (g1->numero_nos == 0) {
@@ -243,7 +260,6 @@ void imprimirGrafo(Grafo *g1) {
                 }
             }
         }
-
     }
 }
 
@@ -300,9 +316,19 @@ void alterarConexoesNo(Grafo *grafo) {
         nova_conexao = lerNumeroReal();
     } while (nova_conexao < 0.0);
 
-    grafo->pesos[posicao_segundo_no-1][posicao_primeiro_no-1] = nova_conexao;
+    alterarPesoAresta(grafo, posicao_primeiro_no, posicao_segundo_no, nova_conexao);
 
     return;
+}
+
+void alteraPesoAresta(Grafo *grafo, uint posicao_primeiro_no, uint posicao_segundo_no, float nova_conexao){
+    // Deixa no primeiro nó o menor dos valores, e no segundo nó o maior
+    if (posicao_primeiro_no > posicao_segundo_no){
+        int aux = posicao_primeiro_no;
+        posicao_primeiro_no = posicao_segundo_no;
+        posicao_segundo_no = aux;
+    }
+    grafo->pesos[posicao_segundo_no-1][posicao_primeiro_no-1] = nova_conexao;
 }
 
 void liberarGrafo(Grafo *g1){
@@ -370,7 +396,53 @@ int procuraNodo(Grafo *grafo, Nodo no){
     return -1;
 }
 
-void mostrarArvoreMinima(Grafo *grafo){}
+
+void mostrarArvoreMinima(Grafo *grafo){
+    if (grafo == NULL) return;
+    printf("\nUma arvore geradora mínima é:\n");
+    Grafo *res = kruskal(grafo);
+    imprimirGrafo(res);
+    liberarGrafo(res);
+
+    printf("\n");
+}
+
+Grafo *kruskal( Grafo *grafo){
+    if (grafo == NULL) return NULL;
+
+    // Arestas do grafo de ordenada pelo peso
+    VetorArestas arestas = arestas_do_grafo(grafo);
+
+    // Coloca cada vértice em um conjunto separado
+    AuxVertice *vertices_auxiliar = incializaAuxVertices(grafo);
+
+    VetorArestas arestas_arvore_minima;
+    arestas_arvore_minima.tamanho = (grafo->numero_nos -1);
+    arestas_arvore_minima.arestas = (Aresta *) malloc(sizeof(Aresta) * arestas_arvore_minima.tamanho);
+    if (arestas_arvore_minima.arestas == NULL){
+        printf("Não foi possível alocar memória\n");
+        return NULL;
+    }
+    int prox_posicao_aresta = 0;
+
+    for (int c = 0; c < arestas.tamanho; c++){
+        if (!pertenceAoMesmoConjunto(vertices_auxiliar, arestas.arestas[c].indice_no_01, arestas.arestas[c].indice_no_02)) {
+            // Aqui eu tenho que adicionar a aresta que liga os dois na nova arvore, e depois eu tenho que recontruir o grafo com as arestas daqui
+            uniaoDeConjuntos(vertices_auxiliar, grafo->numero_nos, vertices_auxiliar[arestas.arestas[c].indice_no_01].conjunto_pertence, vertices_auxiliar[arestas.arestas[c].indice_no_02].conjunto_pertence);
+            arestas_arvore_minima.arestas[prox_posicao_aresta] = arestas.arestas[c];
+            prox_posicao_aresta++;
+        }
+    }
+
+    for (int c = 0; c < arestas_arvore_minima.tamanho; c++){
+        printf("(%d, %d) -> %f\n", arestas_arvore_minima.arestas[c].indice_no_01, arestas_arvore_minima.arestas[c].indice_no_02, arestas_arvore_minima.arestas[c].peso);
+    }
+
+
+    // Recriar o grafo no formato de matriz
+    return criaGrafo();
+
+}
 
 // Retorna um vetor com as arestas não nulas do grafo
 VetorArestas arestas_do_grafo(Grafo *grafo) {
@@ -379,7 +451,7 @@ VetorArestas arestas_do_grafo(Grafo *grafo) {
     temp.arestas = NULL;
 
     for (int c = 0; c < grafo->numero_nos; c++) {
-        for (int i = 0; i <= c; i++){
+        for (int i = 0; i <= c; i++) {
             if (grafo->pesos[c][i] != 0.0) {
                 temp.tamanho++;
                 // Aumenta o tamanho do vetor arestas
@@ -404,9 +476,28 @@ VetorArestas arestas_do_grafo(Grafo *grafo) {
 }
 
 
-typedef struct {
-    int indice_vertice;
-    int conjunto_pertence;
-} AuxVertice;
-bool pertenceAoMesmoConjunto(AuxVertice *conjunto_vertices, int vertice01, int vertice02){}
+AuxVertice *incializaAuxVertices(Grafo *grafo){
+    AuxVertice *temp = (AuxVertice *) malloc(sizeof(AuxVertice) * grafo->numero_nos);
+    if (temp == NULL){
+        printf("\nERRO AO ALOCAR MEMÓRIA\n");
+        return NULL;
+    }
 
+    for (int c = 0; c < grafo->numero_nos; c++){
+        temp[c].indice_vertice = c;
+        temp[c].conjunto_pertence = c;
+    }
+
+    return temp;
+}
+bool pertenceAoMesmoConjunto(AuxVertice *conjunto_vertices, int vertice01, int vertice02){
+    return conjunto_vertices[vertice01].conjunto_pertence == conjunto_vertices[vertice02].conjunto_pertence;
+}
+
+void uniaoDeConjuntos(AuxVertice *vertices_auxiliar, int tamanho, int conjunto1, int conjunto2) {
+    for (int c = 0; c < tamanho; c++) {
+        if (vertices_auxiliar[c].conjunto_pertence == conjunto1){
+            vertices_auxiliar[c].conjunto_pertence = conjunto2;
+        }
+    }
+}
