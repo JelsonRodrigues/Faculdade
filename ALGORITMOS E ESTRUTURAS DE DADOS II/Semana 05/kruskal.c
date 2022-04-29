@@ -150,6 +150,7 @@ OpcoesMenu menu(){
         printf("\nDIGITE UMA OPÇÃO");
         printf("\n\t%d. ADICIONAR NÓ AO GRAFO", ADICIONAR_NO);
         printf("\n\t%d. MOSTRAR O GRAFO", MOSTRAR_GRAFO);
+        printf("\n\t%d. INSERIR ARESTAS", INSERIR_ARESTA);
         printf("\n\t%d. ALTERAR ARESTAS", ALTERAR_ARESTAS);
         printf("\n\t%d. GERAR A ARVORE MÍNIMA", GERAR_ARVORE_MINIMA);
         printf("\n\t%d. SAIR", SAIR);
