@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <time.h>
+#include <string.h>
 
 
 // Estruturas do programa
@@ -31,7 +33,7 @@ int procurarVerticePorID(Grafo *grafo_procurar, int id_vertice);
 
 // Funções de Vértice
 Vertice criaVertice(int id_vertice);
-void liberaVertice(Vertice vertice_liberar);
+void liberaVertice(Vertice *vertice_liberar);
 void imprimeVertice(Vertice vertice_imprimir);
 void adicionarAresta(Vertice *vertice, Aresta aresta);
 bool verticeEhAdjacente(Vertice vertice_origem, Vertice vertice);
@@ -62,13 +64,16 @@ void sair(Grafo *grafo);
 // Algoritmo de Kruskal
 void quicksort(void *dado, int tamanho, int (*funcao_comparadora)(void *, void *), void (*funcao_swap)(void *, void *), int tamanho_bytes);
 Grafo *kruskal(Grafo *grafo);
-
+bool conjuntosSeparados(Grafo **vetor_grafos, int tamanho, Vertice vertice01, Vertice vertice02);
+int indiceGrafoContemVertice(Grafo **vetor_grafos, int tamanho, Vertice vertice);
 
 int main() {
     Grafo *grafo = criaGrafo();
     if (grafo == NULL) {
         exit(EXIT_FAILURE);
     }
+
+    srand(time(NULL));
 
     OPCAO_MENU escolha_usuario;
     while (true){
@@ -122,9 +127,11 @@ void liberaGrafo(Grafo *grafo_liberar){
     if (grafo_liberar){
         if (grafo_liberar->vertices) {
             for (int c = 0; c < grafo_liberar->numero_vertices; c++){
-                liberaVertice(grafo_liberar->vertices[c]);
+                liberaVertice(&grafo_liberar->vertices[c]);
             }
             free(grafo_liberar->vertices);
+            grafo_liberar->vertices = NULL;
+            grafo_liberar->numero_vertices = 0;
         }
         free(grafo_liberar);
     }
@@ -180,9 +187,11 @@ Vertice criaVertice(int id_vertice){
     return temp;
 }
 
-void liberaVertice(Vertice vertice_liberar) {
-    if (vertice_liberar.arestas) {
-        free(vertice_liberar.arestas);
+void liberaVertice(Vertice *vertice_liberar) {
+    if (vertice_liberar->arestas) {
+        free(vertice_liberar->arestas);
+        vertice_liberar->arestas = NULL;
+        vertice_liberar->numero_arestas = 0;
     }
 }
 
@@ -197,9 +206,13 @@ void imprimeVertice(Vertice vertice_imprimir){
 }
 
 void adicionarAresta(Vertice *vertice, Aresta aresta){
+    if (vertice == NULL) {
+        printf("\nVertice para adicionar invalido"); 
+        return;
+    }
     if (aresta.id_vertice_01 == vertice->id_vertice){
         vertice->numero_arestas++;
-        vertice->arestas = realloc(vertice->arestas, sizeof(Aresta) * vertice->numero_arestas);
+        vertice->arestas = (Aresta *) realloc(vertice->arestas, sizeof(Aresta) * vertice->numero_arestas);
         if (vertice->arestas == NULL){
             printf("\nErro ao adicionar aresta");
             vertice->numero_arestas = 0;
@@ -350,19 +363,16 @@ void alterarAresta(Grafo *grafo){
 
 }
 void gerarMST(Grafo *grafo){
-    kruskal(grafo);
+    Grafo *grafo_mst = kruskal(grafo);
+    imprimeGrafo(grafo_mst);
+    liberaGrafo(grafo_mst);
 }
 void sair(Grafo *grafo){
     liberaGrafo(grafo);
     exit(0);
 }
 
-int lerNumeroInteiro(){
-    int numero = 0;
-    while (scanf("%d%*c", &numero) == 0) {
-        while (getc(stdin) != '\n');
-    }
-
+OPCAO_MENU menu(){
     OPCAO_MENU escolha;
     do {
         printf("\n");
@@ -384,6 +394,22 @@ int lerNumeroInteiro(){
     return escolha;
 }
 
+int lerNumeroInteiro(){
+    int numero = 0;
+    while (scanf("%d%*c", &numero) == 0) {
+        while (getc(stdin) != '\n');
+    }
+    return numero;
+}
+
+float lerNumeroReal() {
+    float numero = 0.0;
+    while (scanf("%f%*c", &numero) == 0) {
+        while (getc(stdin) != '\n');
+    }
+    return numero;
+}
+
 int comparador_de_arestas(void *aresta1, void *aresta2){
     if (((Aresta *) (aresta1))->peso < ((Aresta *) (aresta2))->peso) return -1;
     if (((Aresta *) (aresta1))->peso == ((Aresta *) (aresta2))->peso) return 0;
@@ -401,13 +427,17 @@ void funcao_troca_arestas(void *aresta1, void *aresta2){
 void quicksort(void *dado, int tamanho, int (*funcao_comparadora)(void *, void *), void (*funcao_swap)(void *, void *), int tamanho_bytes){
     if (dado == NULL || tamanho <= 1) return;
     
-    int pivo = (rand() % tamanho);
+    void *pivo = malloc(tamanho_bytes);
+    if (pivo == NULL) return;
+
+    pivo = memcpy(pivo, dado + ((rand() % tamanho) * tamanho_bytes), tamanho_bytes);
+
     int i = 0;
     int j = tamanho - 1;
 
     while (i <= j) {
-        while (funcao_comparadora(dado + (i * tamanho_bytes), dado + (pivo * tamanho_bytes)) == -1) i++;
-        while (funcao_comparadora(dado + (j * tamanho_bytes), dado + (pivo * tamanho_bytes)) == 1) j--;
+        while (funcao_comparadora(dado + (i * tamanho_bytes), pivo) == -1) i++;
+        while (funcao_comparadora(dado + (j * tamanho_bytes), pivo) == 1) j--;
 
         if (i <= j){
             funcao_swap(dado + (i * tamanho_bytes), dado + (j * tamanho_bytes));
@@ -416,9 +446,10 @@ void quicksort(void *dado, int tamanho, int (*funcao_comparadora)(void *, void *
         }
     }
 
+    free(pivo);
     // Recursão
     quicksort(dado, j + 1, funcao_comparadora, funcao_swap, tamanho_bytes);
-    quicksort((void *)(dado + i), tamanho - i, funcao_comparadora, funcao_swap, tamanho_bytes);
+    quicksort((void *)(dado + i * tamanho_bytes), tamanho - i, funcao_comparadora, funcao_swap, tamanho_bytes);
 
 }
 
@@ -434,7 +465,7 @@ Grafo *kruskal(Grafo *grafo){
     for (int c = 0; c < grafo->numero_vertices; c++){
         // Aumenta o vetor das arestas
         numero_arestas += grafo->vertices[c].numero_arestas;
-        arestas_grafo_original = (Aresta *) realloc(arestas_grafo_original, numero_arestas);
+        arestas_grafo_original = (Aresta *) realloc(arestas_grafo_original, sizeof(Aresta) * numero_arestas);
         if (arestas_grafo_original == NULL) return NULL;
 
         for (int i = 0; i < grafo->vertices[c].numero_arestas; i++){
@@ -446,31 +477,81 @@ Grafo *kruskal(Grafo *grafo){
     quicksort((void *)(arestas_grafo_original), numero_arestas, &comparador_de_arestas, &funcao_troca_arestas, sizeof(Aresta));
 
 
-    // Cria uma floresta com os vértices inicialmente todos separados
+    // Cria uma floresta com os vértices inicialmente todos separados, e sem as arestas
     Grafo **floresta = (Grafo **) malloc(sizeof(Grafo *) * grafo->numero_vertices);
     if (floresta == NULL) return NULL;
     for (int c = 0; c < grafo->numero_vertices; c++){
         Grafo *temp = criaGrafo();
-        adicionarVertice(temp, grafo->vertices[c]);
+        
+        adicionarVertice(temp, criaVertice(grafo->vertices[c].id_vertice));
 
         floresta[c] = temp;
     }
 
     for (int c = 0; c < numero_arestas; c++) {
         // Se estão em conjuntos separados, faz a união, e adiciona a aresta que estava ligando eles ao novo grafo
-        Vertice vertice01 = grafo->vertices[(grafo, arestas_grafo_original[c].id_vertice_01)];
-        Vertice vertice02 = grafo->vertices[(grafo, arestas_grafo_original[c].id_vertice_02)];
-        if (conjuntosSeparados(floresta, grafo->numero_vertices, vertice01, vertice02)){
-            // FAZER A UNIÃO DOS GRAFOS DE CADA VÉRTICE, NÃO ESQUECER DE UNIR AS ARESTAS
-            // Acho que posso fazer um for do grafo que quero unir, pegar cada vértice e ir adicionando no outro com a função de insere vértice
+        Vertice vertice01;
+        int indice_grafo_vertice_01;
+        for (int contador = 0; contador < grafo->numero_vertices; contador++) {
+            int pos_vertice = procurarVerticePorID(floresta[contador], arestas_grafo_original[c].id_vertice_01);
+            if (pos_vertice != -1){
+                vertice01 = floresta[contador]->vertices[pos_vertice];
+                indice_grafo_vertice_01 = contador;
+                break;
+            }
         }
 
+        Vertice vertice02;
+        int indice_grafo_vertice_02;
+        for (int contador = 0; contador < grafo->numero_vertices; contador++) {
+            int pos_vertice = procurarVerticePorID(floresta[contador], arestas_grafo_original[c].id_vertice_02);
+            if (pos_vertice != -1){
+                vertice02 = floresta[contador]->vertices[pos_vertice];
+                indice_grafo_vertice_02 = contador;
+                break;
+            }
+        }
 
-        // Tenho que criar a função de união (retira todos os elementos do grafo atual e junta no outro grafo) 
-        // No final é só eu liberar o vetor de grafos e retornar o grafo que ficou com todos os itens
+        if (indice_grafo_vertice_01 != indice_grafo_vertice_02){
+            // FAZER A UNIÃO DOS GRAFOS DE CADA VÉRTICE, NÃO ESQUECER DE UNIR AS ARESTAS
+            
+            // Adiciona todos os vértices (e arestas) do grafo que contém o segundo vértice ao grafo que contém o primeiro vértice
+            for (int i = 0; i < floresta[indice_grafo_vertice_02]->numero_vertices; i++){
+                adicionarVertice(floresta[indice_grafo_vertice_01], floresta[indice_grafo_vertice_02]->vertices[i]);
+            }
+            
+            // Deixa o grafo que continha o vértice 02 ZERADO
+            liberaGrafo(floresta[indice_grafo_vertice_02]);
+            floresta[indice_grafo_vertice_02] = criaGrafo();
+
+            // Adiciona a aresta aos dois vértices
+            adicionarAresta(&floresta[indice_grafo_vertice_01]->vertices[procurarVerticePorID(floresta[indice_grafo_vertice_01], vertice01.id_vertice)], criaAresta(arestas_grafo_original[c].id_vertice_01, arestas_grafo_original[c].id_vertice_02, arestas_grafo_original[c].peso));
+            adicionarAresta(&floresta[indice_grafo_vertice_01]->vertices[procurarVerticePorID(floresta[indice_grafo_vertice_01], vertice02.id_vertice)], criaAresta(arestas_grafo_original[c].id_vertice_02, arestas_grafo_original[c].id_vertice_01, arestas_grafo_original[c].peso));
+
+            // Se algum grafo da floresta contém todos os vértices, então o algoritmo já finalizou
+            if (floresta[indice_grafo_vertice_01]->numero_vertices == grafo->numero_vertices){
+                break;
+            }
+        }
     }
 
-    return NULL;
+    free(arestas_grafo_original);
+
+    // Pega o grafo que contém todos os vértices do grafo original, e vai liberando os outros
+    Grafo *resultado = NULL;
+    for (int c = 0; c < grafo->numero_vertices; c++){
+        if (floresta[c]->numero_vertices == grafo->numero_vertices) {
+            resultado = floresta[c];
+        }
+        else {
+            liberaGrafo(floresta[c]);
+        }
+    }
+
+    // Libera a floresta que foi criada
+    free(floresta);
+
+    return resultado;
 }
 
 bool conjuntosSeparados(Grafo **vetor_grafos, int tamanho, Vertice vertice01, Vertice vertice02){
