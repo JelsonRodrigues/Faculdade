@@ -41,6 +41,7 @@ bool verticeEhAdjacentePorID(Vertice vertice_origem, int id_vertice);
 int procurarAresta(Vertice vertice_origem, Vertice vertice_destino);
 int procurarArestaPorID(Vertice vertice_origem, int id_vertice_destino);
 void imprimirIDVertices(Grafo *grafo);
+void copiarArestasVertice(Vertice *vertice_destino, Vertice *vertice_origem);
 
 // Funções de Arestas (Conexão)
 Aresta criaAresta(int id_vertice_01, int id_vertice_02, float peso);
@@ -160,7 +161,10 @@ void adicionarVertice(Grafo *grafo, Vertice vertice){
                 return;
             }
 
-            grafo->vertices[grafo->numero_vertices - 1] = vertice;
+
+            grafo->vertices[grafo->numero_vertices - 1] = criaVertice(vertice.id_vertice);
+            
+            copiarArestasVertice(&grafo->vertices[grafo->numero_vertices - 1], &vertice);
         }
         else {
             printf("\nVertice com o id %d ja existe no grafo.", vertice.id_vertice);
@@ -168,8 +172,16 @@ void adicionarVertice(Grafo *grafo, Vertice vertice){
     }
 }
 
+void copiarArestasVertice(Vertice *vertice_destino, Vertice *vertice_origem){
+    if (vertice_destino && vertice_origem){
+        for (int c = 0; c < vertice_origem->numero_arestas; c++){
+            adicionarAresta(vertice_destino, vertice_origem->arestas[c]);
+        }
+    }
+}
+
 int procurarVerticePorID(Grafo *grafo_procurar, int id_vertice){
-    if (grafo_procurar){
+    if (grafo_procurar) {
         for (int c = 0; c < grafo_procurar->numero_vertices; c++) {
             if (grafo_procurar->vertices[c].id_vertice == id_vertice) {
                 return c;
@@ -207,7 +219,7 @@ void imprimeVertice(Vertice vertice_imprimir){
 
 void adicionarAresta(Vertice *vertice, Aresta aresta){
     if (vertice == NULL) {
-        printf("\nVertice para adicionar invalido"); 
+        printf("\nVertice invalido"); 
         return;
     }
     if (aresta.id_vertice_01 == vertice->id_vertice){
@@ -307,7 +319,8 @@ void imprimirIDVertices(Grafo *grafo) {
 }
 
 void alterarAresta(Grafo *grafo){
-    if (grafo == NULL) return;
+    if (grafo == NULL ) return;
+    if (grafo->numero_vertices < 1) return;
     printf("\nALTERAR ARESTA");
     
     // Mostra todos o ID dos vértices do grafo
@@ -490,23 +503,19 @@ Grafo *kruskal(Grafo *grafo){
 
     for (int c = 0; c < numero_arestas; c++) {
         // Se estão em conjuntos separados, faz a união, e adiciona a aresta que estava ligando eles ao novo grafo
-        Vertice vertice01;
         int indice_grafo_vertice_01;
         for (int contador = 0; contador < grafo->numero_vertices; contador++) {
             int pos_vertice = procurarVerticePorID(floresta[contador], arestas_grafo_original[c].id_vertice_01);
             if (pos_vertice != -1){
-                vertice01 = floresta[contador]->vertices[pos_vertice];
                 indice_grafo_vertice_01 = contador;
                 break;
             }
         }
 
-        Vertice vertice02;
         int indice_grafo_vertice_02;
         for (int contador = 0; contador < grafo->numero_vertices; contador++) {
             int pos_vertice = procurarVerticePorID(floresta[contador], arestas_grafo_original[c].id_vertice_02);
             if (pos_vertice != -1){
-                vertice02 = floresta[contador]->vertices[pos_vertice];
                 indice_grafo_vertice_02 = contador;
                 break;
             }
@@ -525,8 +534,9 @@ Grafo *kruskal(Grafo *grafo){
             floresta[indice_grafo_vertice_02] = criaGrafo();
 
             // Adiciona a aresta aos dois vértices
-            adicionarAresta(&floresta[indice_grafo_vertice_01]->vertices[procurarVerticePorID(floresta[indice_grafo_vertice_01], vertice01.id_vertice)], criaAresta(arestas_grafo_original[c].id_vertice_01, arestas_grafo_original[c].id_vertice_02, arestas_grafo_original[c].peso));
-            adicionarAresta(&floresta[indice_grafo_vertice_01]->vertices[procurarVerticePorID(floresta[indice_grafo_vertice_01], vertice02.id_vertice)], criaAresta(arestas_grafo_original[c].id_vertice_02, arestas_grafo_original[c].id_vertice_01, arestas_grafo_original[c].peso));
+            adicionarAresta(&(floresta[indice_grafo_vertice_01]->vertices[procurarVerticePorID(floresta[indice_grafo_vertice_01], arestas_grafo_original[c].id_vertice_01)]), criaAresta(arestas_grafo_original[c].id_vertice_01, arestas_grafo_original[c].id_vertice_02, arestas_grafo_original[c].peso));
+
+            adicionarAresta(&(floresta[indice_grafo_vertice_01]->vertices[procurarVerticePorID(floresta[indice_grafo_vertice_01], arestas_grafo_original[c].id_vertice_02)]), criaAresta(arestas_grafo_original[c].id_vertice_02, arestas_grafo_original[c].id_vertice_01, arestas_grafo_original[c].peso));
 
             // Se algum grafo da floresta contém todos os vértices, então o algoritmo já finalizou
             if (floresta[indice_grafo_vertice_01]->numero_vertices == grafo->numero_vertices){
