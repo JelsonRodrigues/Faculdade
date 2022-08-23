@@ -4,7 +4,6 @@
 #include <time.h>
 #include <string.h>
 
-
 // Estruturas do programa
 typedef struct {
     int id_vertice_01;
@@ -24,12 +23,20 @@ typedef struct {
 } Grafo;
 
 
+int comparar(void * a, void * b){
+    if (* (int *) a > * (int *) b) return 1;
+    if (* (int *) a < * (int *) b) return -1;
+    return 0;
+}
+
 // Funções de grafo
 Grafo *criaGrafo();
+Grafo *lerDeArquivo(char *nome_arquivo);
 void liberaGrafo(Grafo *grafo_liberar);
 void imprimeGrafo(Grafo *grafo_imprimir);
 void adicionarVertice(Grafo *grafo, Vertice vertice);
 int procurarVerticePorID(Grafo *grafo_procurar, int id_vertice);
+float pesoTotalGrafo(Grafo *grafo);
 
 // Funções de Vértice
 Vertice criaVertice(int id_vertice);
@@ -84,6 +91,8 @@ int main() {
         switch (escolha_usuario)
         {
         case LER_VERTICES_DE_ARQUIVO:
+            liberaGrafo(grafo);
+            grafo = lerDeArquivo("./tsp1_253.txt");
             break;
         case MOSTRAR_GRAFO:
             mostrarGrafo(grafo);
@@ -436,12 +445,12 @@ void quicksort(void *dado, int tamanho, int (*funcao_comparadora)(void *, void *
         while (funcao_comparadora(dado + (j * tamanho_bytes), pivo) == 1) j--;
 
         if (i <= j){
-            // Copiar byte a byte de um local para o outro
-            for (uint c = 0; c < tamanho_bytes; c++){
-                // Colocar aqui o metodo do Cormem para swap de variaveis sem uma terceira ser utilizada
-
+            // Copia byte a byte de um local para o outro
+            for (int c = 0; c < tamanho_bytes; c++){
+                char aux = * (char *) (dado + (i * tamanho_bytes) + c);
+                * (char *) (dado + (i * tamanho_bytes) + c) = * (char *) (dado + (j * tamanho_bytes) + c);
+                * (char *) (dado + (j * tamanho_bytes) + c) = aux;
             }
-            // funcao_swap(dado + (i * tamanho_bytes), dado + (j * tamanho_bytes));
             i++;
             j--;
         }
@@ -462,7 +471,7 @@ Grafo *kruskal(Grafo *grafo){
     int indice_proxima_aresta = 0;
     Aresta *arestas_grafo_original = NULL;
 
-    for (int c = 0; c < grafo->numero_vertices; c++){
+    for(int c = 0; c < grafo->numero_vertices; c++){
         // Aumenta o vetor das arestas
         numero_arestas += grafo->vertices[c].numero_arestas;
         arestas_grafo_original = (Aresta *) realloc(arestas_grafo_original, sizeof(Aresta) * numero_arestas);
@@ -474,8 +483,8 @@ Grafo *kruskal(Grafo *grafo){
     }
 
     // Ordena as arestas 
-    quicksort((void *)(arestas_grafo_original), numero_arestas, &comparador_de_arestas, sizeof(Aresta));
-
+    quicksort((void *)(arestas_grafo_original), numero_arestas, comparador_de_arestas, sizeof(Aresta));
+    //qsort((void *)(arestas_grafo_original), (size_t) numero_arestas, sizeof(Aresta), &comparador_de_arestas);
 
     // Cria uma floresta com os vértices inicialmente todos separados, e sem as arestas
     Grafo **floresta = (Grafo **) malloc(sizeof(Grafo *) * grafo->numero_vertices);
@@ -507,7 +516,6 @@ Grafo *kruskal(Grafo *grafo){
 
             // Adiciona a aresta aos dois vértices
             adicionarAresta(&(floresta[indice_grafo_vertice_01]->vertices[procurarVerticePorID(floresta[indice_grafo_vertice_01], arestas_grafo_original[c].id_vertice_01)]), criaAresta(arestas_grafo_original[c].id_vertice_01, arestas_grafo_original[c].id_vertice_02, arestas_grafo_original[c].peso));
-
             adicionarAresta(&(floresta[indice_grafo_vertice_01]->vertices[procurarVerticePorID(floresta[indice_grafo_vertice_01], arestas_grafo_original[c].id_vertice_02)]), criaAresta(arestas_grafo_original[c].id_vertice_02, arestas_grafo_original[c].id_vertice_01, arestas_grafo_original[c].peso));
 
             // Se algum grafo da floresta contém todos os vértices, então o algoritmo já finalizou
@@ -551,4 +559,67 @@ int indiceGrafoContemVerticePorID(Grafo **vetor_grafos, int tamanho, int id_vert
         }
     }
     return -1;
+}
+
+
+// Lê uma matriz de adjacência de um arquivo
+Grafo *lerDeArquivo(char *nome_arquivo){
+    FILE *arquivo = fopen(nome_arquivo, "rt");
+    if (arquivo == NULL) {
+        printf("\nERRO AO LER ARQUIVO!!!");
+        return NULL;
+    }
+
+    Grafo *grafo = criaGrafo();
+
+    char *buffer_linha = NULL;
+    size_t tamanho_buffer = 0;
+    
+    int contador_coluna = 0;
+    int contador_linha = 0;
+    char *delimitador = " ";
+    char *token = NULL; 
+
+    while(getline(&buffer_linha, &tamanho_buffer, arquivo) != EOF){
+        adicionarVertice(grafo, criaVertice(contador_linha));   // Caso já exista qo vértice ele só não adiciona
+        contador_coluna = 0;
+
+        token = strtok(buffer_linha, delimitador);
+        while(token != NULL){
+            adicionarVertice(grafo, criaVertice(contador_coluna));
+
+            adicionarAresta(&(grafo->vertices[procurarVerticePorID(grafo, contador_linha)]), criaAresta(contador_linha, contador_coluna, atof(token)));
+
+            token = strtok(NULL, delimitador);
+
+            contador_coluna++;
+        }
+        contador_linha++;
+    }
+
+    free(buffer_linha);
+    fclose(arquivo);
+
+    return grafo;
+}
+
+void menorCicloHamiltoniano(Grafo *grafo){
+    Grafo *mst = kruskal(grafo);
+    imprimeGrafo(mst);
+
+    printf("\n\nPeso do grafo original e de %.2f\n", pesoTotalGrafo(grafo));
+    printf("\n\nPeso e de %.2f\n", pesoTotalGrafo(mst));
+    liberaGrafo(mst);
+}
+
+float pesoTotalGrafo(Grafo *grafo){
+    float peso_total = 0.0;
+    
+    for (int c = 0; c < grafo->numero_vertices; c++){
+        for (int i = 0; i < grafo->vertices[c].numero_arestas; i++){
+            peso_total += grafo->vertices[c].arestas[i].peso;
+        }
+    }
+
+    return peso_total / 2;    // Tem que dividir senão a contagem é feita duplicada
 }
