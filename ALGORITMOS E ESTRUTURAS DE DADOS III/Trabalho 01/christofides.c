@@ -43,14 +43,19 @@ Grafo *lerDeArquivo(char *nome_arquivo);
 void liberaGrafo(Grafo *grafo_liberar);
 void imprimeGrafo(Grafo *grafo_imprimir);
 void adicionarVertice(Grafo *grafo, Vertice vertice);
+void removerVertice(Grafo *grafo, Vertice vertice);
+void removerVerticePorId(Grafo *grafo, int id_vertice);
 int procurarVerticePorID(Grafo *grafo_procurar, int id_vertice);
 float pesoTotalGrafo(Grafo *grafo);
+int grauDoVertice(Vertice vertice);
 
 // Funções de Vértice
 Vertice criaVertice(int id_vertice);
 void liberaVertice(Vertice *vertice_liberar);
 void imprimeVertice(Vertice vertice_imprimir);
 void adicionarAresta(Vertice *vertice, Aresta aresta);
+void removerAresta(Vertice *vertice, Aresta aresta);
+void removerArestaPorId(Vertice *vertice, int id_vertice_02);
 bool verticeEhAdjacente(Vertice vertice_origem, Vertice vertice);
 bool verticeEhAdjacentePorID(Vertice vertice_origem, int id_vertice);
 int procurarAresta(Vertice vertice_origem, Vertice vertice_destino);
@@ -80,6 +85,10 @@ Grafo *kruskal(Grafo *grafo);
 bool conjuntosSeparados(Grafo **vetor_grafos, int tamanho, Vertice vertice01, Vertice vertice02);
 int indiceGrafoContemVertice(Grafo **vetor_grafos, int tamanho, Vertice vertice);
 int indiceGrafoContemVerticePorID(Grafo **vetor_grafos, int tamanho, int id_vertice);
+
+// Algoritmo de Christofides
+Grafo *subgrafoVerticesGrauImparSemArestas(Grafo *grafo);
+Grafo *subgrafoVerticesGrauImpar(Grafo *grafo);
 
 int main() {
     Grafo *grafo = criaGrafo();
@@ -175,6 +184,31 @@ void adicionarVertice(Grafo *grafo, Vertice vertice){
         }
         else {
             printf("\nVertice com o id %d ja existe no grafo.", vertice.id_vertice);
+        }
+    }
+}
+
+void removerVertice(Grafo *grafo, Vertice vertice){
+    removerVerticePorId(grafo, vertice.id_vertice);
+}
+
+void removerVerticePorId(Grafo *grafo, int id_vertice){
+    if (grafo) {
+        int posicao_vertice = procurarVerticePorID(grafo, id_vertice); 
+        if (posicao_vertice != -1){
+            for (int c = posicao_vertice; c < grafo->numero_vertices - 1; c++){
+                grafo->vertices[c] = grafo->vertices[c + 1]; 
+            }
+
+            grafo->numero_vertices--;
+            grafo->vertices = (Vertice *) realloc(grafo->vertices, grafo->numero_vertices * sizeof(Vertice));
+            if (grafo->vertices == NULL && grafo->numero_vertices > 0){
+                printf("\nERRO AO EXCLUIR, TODOS VERTICES EXCLUIDOS!!! ;(");
+                grafo->numero_vertices = 0;
+            }
+        }
+        else {
+            printf("\nO vertice nao esta presente no grafo!!!");
         }
     }
 }
@@ -278,6 +312,31 @@ Aresta criaAresta(int id_vertice_01, int id_vertice_02, float peso){
                           .id_vertice_02 = id_vertice_02,
                           .peso = peso};
     return aresta_nova;
+}
+
+void removerAresta(Vertice *vertice, Aresta aresta){
+    removerArestaPorId(vertice, aresta.id_vertice_02);
+}
+
+void removerArestaPorId(Vertice *vertice, int id_vertice_02){
+    if (vertice){
+        int posicao_aresta = procurarArestaPorID(*vertice, id_vertice_02); 
+        if (posicao_aresta != -1){
+            for (int c = posicao_aresta; c < vertice->numero_arestas - 1; c++){
+                vertice->arestas[c] = vertice->arestas[c + 1]; 
+            }
+
+            vertice->numero_arestas--;
+            vertice->arestas = (Aresta *) realloc(vertice->arestas, vertice->numero_arestas * sizeof(Aresta));
+            if (vertice->arestas == NULL && vertice->numero_arestas > 0){
+                printf("\nERRO AO EXCLUIR, TODAS ARESTAS EXCLUIDAS!!! ;(");
+                vertice->numero_arestas = 0;
+            }
+        }
+        else {
+            printf("\nA aresta nao esta presente no vertice!!!");
+        }
+    }
 }
 
 void imprimeAresta(Aresta aresta_imprimir){
@@ -497,7 +556,7 @@ Grafo *lerDeArquivo(char *nome_arquivo){
     char *token = NULL; 
 
     while(getline(&buffer_linha, &tamanho_buffer, arquivo) != EOF){
-        adicionarVertice(grafo, criaVertice(contador_linha));   // Caso já exista qo vértice ele só não adiciona
+        adicionarVertice(grafo, criaVertice(contador_linha));   // Caso já exista o vértice ele só não adiciona
         contador_coluna = 0;
 
         token = strtok(buffer_linha, delimitador);
@@ -525,6 +584,29 @@ void menorCicloHamiltoniano(Grafo *grafo){
 
     printf("\n\nPeso do grafo original e de %.2f\n", pesoTotalGrafo(grafo));
     printf("\n\nPeso e de %.2f\n", pesoTotalGrafo(mst));
+
+    Grafo *subgrafo_vertices_impares = subgrafoVerticesGrauImparSemArestas(mst);
+
+    imprimeGrafo(subgrafo_vertices_impares);
+
+    // Adiciona todas as arestas entre os vértices do subgrado com vértices de grau ímpar
+    for (int c = 0; c < subgrafo_vertices_impares->numero_vertices; c++){
+        int pos_vertice = procurarVerticePorID(grafo, subgrafo_vertices_impares->vertices[c].id_vertice);
+        int num_arestas = 0;
+        if (pos_vertice != -1) {
+            num_arestas = grafo->vertices[pos_vertice].numero_arestas;
+            for (int i = 0; i<num_arestas; i++) {
+                if (subgrafo_vertices_impares->vertices[c].id_vertice != grafo->vertices[pos_vertice].arestas[i].id_vertice_02){
+                    if (procurarVerticePorID(subgrafo_vertices_impares, grafo->vertices[pos_vertice].arestas[i].id_vertice_02) != -1){
+                        adicionarAresta(&subgrafo_vertices_impares->vertices[c], grafo->vertices[pos_vertice].arestas[i]);
+                    }
+                }
+            }
+        }
+    }
+
+    imprimeGrafo(subgrafo_vertices_impares);
+    liberaGrafo(subgrafo_vertices_impares);
     liberaGrafo(mst);
 }
 
@@ -539,3 +621,33 @@ float pesoTotalGrafo(Grafo *grafo){
 
     return peso_total / 2;    // Tem que dividir senão a contagem é feita duplicada
 }
+
+int grauDoVertice(Vertice vertice){
+    return vertice.numero_arestas;
+}
+
+// Esta função retorna um grafo contendo apenas os vértices do grafo passado 
+// que tenha um grau impar. Os vértices são retornados sem arestas
+Grafo *subgrafoVerticesGrauImparSemArestas(Grafo *grafo){
+    Grafo *resultado = criaGrafo();
+    for (int c = 0; c < grafo->numero_vertices; c++){
+        if (grauDoVertice(grafo->vertices[c]) % 2 != 0){
+            adicionarVertice(resultado, criaVertice(grafo->vertices[c].id_vertice));
+        }
+    }
+    return resultado;
+}
+
+// Esta função retorna um grafo contendo apenas os vértices do grafo passado 
+// que tenha um grau impar. Os vértices são retornados com as arestas normalmente
+Grafo *subgrafoVerticesGrauImpar(Grafo *grafo){
+    Grafo *resultado = criaGrafo();
+    for (int c = 0; c < grafo->numero_vertices; c++){
+        if (grauDoVertice(grafo->vertices[c]) % 2 != 0){
+            adicionarVertice(resultado, grafo->vertices[c]);
+        }
+    }
+    return resultado;
+}
+
+
