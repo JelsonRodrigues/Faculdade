@@ -4,6 +4,21 @@
 #include <time.h>
 #include <string.h>
 
+/* 
+    A velocidade do programa será muito maior se eu implementar o vetor de vértices (grafo)
+    e o vetor de arestar (vertice) de forma ordenada e realizar as buscas por procura binária
+    Pra fazer isso é bem fácil na verdade, após a leitura dos valores do arquivo é só rodar um
+    quicksort, ou alterar as funções de inserir aresta e vertice para inserir de forma ordenada.
+    
+    Ou se eu souber de antemão o número máximo de vértices e/ou de arestas eu possso implementar
+    como uma hashtable que a velocidade seria maior ainda (a maior de todas na verdade)
+    Na verdade como eu leio do arquivo o grafo e a cada linha/coluna é um vértice, dá pra mim
+    criar uma hash pequena de início e como os valores de vértice são sempre incrementais (sempre diferentes),
+    quando estiver enchendo a tabela eu aumento, não vai haver colisão neste caso. 
+    Já para as arestas não é bem assim porque os valores não são incrementais (não necessariamente).
+*/
+
+
 // Estruturas do programa
 typedef struct {
     int id_vertice_01;
@@ -21,13 +36,6 @@ typedef struct {
     Vertice *vertices;
     int numero_vertices;
 } Grafo;
-
-
-int comparar(void * a, void * b){
-    if (* (int *) a > * (int *) b) return 1;
-    if (* (int *) a < * (int *) b) return -1;
-    return 0;
-}
 
 // Funções de grafo
 Grafo *criaGrafo();
@@ -61,10 +69,7 @@ int lerNumeroInteiro();
 float lerNumeroReal();
 
 // Opção do menu 
-void insereVertice(Grafo *grafo);
 void mostrarGrafo(Grafo *grafo);
-void inserirAresta(Grafo *grafo);
-void alterarAresta(Grafo *grafo);
 void menorCicloHamiltoniano(Grafo *grafo);
 void sair(Grafo *grafo);
 
@@ -257,6 +262,7 @@ bool verticeEhAdjacentePorID(Vertice vertice_origem, int id_vertice){
 int procurarAresta(Vertice vertice_origem, Vertice vertice_destino){
     return procurarArestaPorID(vertice_origem, vertice_destino.id_vertice);
 }
+
 int procurarArestaPorID(Vertice vertice_origem, int id_vertice_destino){
     for (int c = 0; c < vertice_origem.numero_arestas; c++){
         if (vertice_origem.arestas[c].id_vertice_02 == id_vertice_destino) {
@@ -273,43 +279,16 @@ Aresta criaAresta(int id_vertice_01, int id_vertice_02, float peso){
                           .peso = peso};
     return aresta_nova;
 }
+
 void imprimeAresta(Aresta aresta_imprimir){
     printf("(%d,%d): %.2f", aresta_imprimir.id_vertice_01, aresta_imprimir.id_vertice_02, aresta_imprimir.peso);
 }
 
 // Funções do programa
-void insereVertice(Grafo *grafo){
-    if (grafo == NULL) return;
-    printf("\nADICIONAR VÉRTICE");
-    
-    // Ler vértice
-    int id_vertice;
-    while (true){
-        printf("\nDigite o ID do vértice: ");
-        id_vertice = lerNumeroInteiro();
-        if (procurarVerticePorID(grafo, id_vertice) == -1){
-            break;
-        }
-        else {
-            printf("\n\tVERICE COM ID %d JÁ EXISTE! DIGITE OUTRO!\n", id_vertice);
-        }
-    }
-
-    adicionarVertice(grafo, criaVertice(id_vertice));
-
-    printf("\nVERTICE %d ADICIONADO COM SUCESSO!\n", id_vertice);
-    
-    return;
-}
-
 void mostrarGrafo(Grafo *grafo){
     printf("\nIMPRIMINDO O GRAFO\n");
     imprimeGrafo(grafo);
     printf("\n");
-}
-void inserirAresta(Grafo *grafo){
-    printf("\nINSERIR ARESTA");
-    alterarAresta(grafo);
 }
 
 void imprimirIDVertices(Grafo *grafo) {
@@ -320,68 +299,6 @@ void imprimirIDVertices(Grafo *grafo) {
     }
 }
 
-void alterarAresta(Grafo *grafo){
-    if (grafo == NULL ) return;
-    if (grafo->numero_vertices < 1) return;
-    printf("\nALTERAR ARESTA");
-    
-    // Mostra todos o ID dos vértices do grafo
-    printf("\nVertices do grafo");
-    imprimirIDVertices(grafo);
-
-    int id_vertice_01 = 0;
-    do {
-        printf("\nDigite o ID do primeiro vertice: ");
-        id_vertice_01 = lerNumeroInteiro();
-    } while (procurarVerticePorID(grafo, id_vertice_01) == -1);
-
-    int id_vertice_02 = 0;
-    do {
-        printf("\nDigite o ID do segundo vertice: ");
-        id_vertice_02 = lerNumeroInteiro();
-    } while (procurarVerticePorID(grafo, id_vertice_02) == -1);
-
-    Vertice *vertice_temp = &(grafo->vertices[procurarVerticePorID(grafo, id_vertice_01)]);
-    if (verticeEhAdjacentePorID(*vertice_temp, id_vertice_02)){
-        printf("\nOS VÉRTICES JÁ SÃO ADJACENTES \n");
-        imprimeAresta(vertice_temp->arestas[procurarArestaPorID(*vertice_temp, id_vertice_02)]);
-        
-        float peso = 0.0f;
-        printf("\nDigite o peso da nova conexão entre os vértices: ");
-        peso = lerNumeroReal();
-
-        // Como o grafo não é dirigido, então é adicionado a aresta aos dois vértices, a menos que os dois sejam o mesmo vértice
-        modificaArestaPorID(*vertice_temp, id_vertice_02, peso);
-        if (id_vertice_01 != id_vertice_02){
-            vertice_temp = &(grafo->vertices[procurarVerticePorID(grafo, id_vertice_02)]);
-            modificaArestaPorID(*vertice_temp, id_vertice_01, peso);
-        }
-
-        printf("\nAresta Modificada");
-        return;
-    }
-    else {
-        printf("\nAresta não existe, uma nova será criada");
-        float peso = 0.0f;
-        printf("\nDigite o peso da conexão entre os vértices: ");
-        peso = lerNumeroReal();
-
-        // Como o grafo não é dirigido, então é adicionado a aresta aos dois vértices, a menos que os dois sejam o mesmo vértice
-        adicionarAresta(vertice_temp, criaAresta(id_vertice_01, id_vertice_02, peso));
-        if (id_vertice_01 != id_vertice_02){
-            vertice_temp = &(grafo->vertices[procurarVerticePorID(grafo, id_vertice_02)]);
-            adicionarAresta(vertice_temp, criaAresta(id_vertice_02, id_vertice_01, peso));
-        }
-
-        printf("\nAresta adicionada");
-    }
-
-}
-void gerarMST(Grafo *grafo){
-    Grafo *grafo_mst = kruskal(grafo);
-    imprimeGrafo(grafo_mst);
-    liberaGrafo(grafo_mst);
-}
 void sair(Grafo *grafo){
     liberaGrafo(grafo);
     exit(0);
@@ -460,7 +377,6 @@ void quicksort(void *dado, int tamanho, int (*funcao_comparadora)(void *, void *
     // Recursão
     quicksort(dado, j + 1, funcao_comparadora, tamanho_bytes);
     quicksort((void *)(dado + i * tamanho_bytes), tamanho - i, funcao_comparadora, tamanho_bytes);
-
 }
 
 Grafo *kruskal(Grafo *grafo){
@@ -483,7 +399,7 @@ Grafo *kruskal(Grafo *grafo){
     }
 
     // Ordena as arestas 
-    quicksort((void *)(arestas_grafo_original), numero_arestas, comparador_de_arestas, sizeof(Aresta));
+    quicksort((void *)(arestas_grafo_original), numero_arestas, &comparador_de_arestas, sizeof(Aresta));
     //qsort((void *)(arestas_grafo_original), (size_t) numero_arestas, sizeof(Aresta), &comparador_de_arestas);
 
     // Cria uma floresta com os vértices inicialmente todos separados, e sem as arestas
