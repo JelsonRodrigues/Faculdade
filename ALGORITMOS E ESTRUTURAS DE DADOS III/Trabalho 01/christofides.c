@@ -87,8 +87,26 @@ int indiceGrafoContemVertice(Grafo **vetor_grafos, int tamanho, Vertice vertice)
 int indiceGrafoContemVerticePorID(Grafo **vetor_grafos, int tamanho, int id_vertice);
 
 // Algoritmo de Christofides
+typedef struct {
+    int *vetor;
+    int tamanho;
+} VetorInt;
 Grafo *subgrafoVerticesGrauImparSemArestas(Grafo *grafo);
 Grafo *subgrafoVerticesGrauImpar(Grafo *grafo);
+VetorInt cicloEuleriano(Grafo *grafo, Vertice vertice_inicial);
+int numeroArestasNoGrafo(Grafo *grafo);
+int procurarArestaVetor(Aresta *vetor_arestas, int tamanho_vetor, Aresta aresta_procurar);
+
+void adicionaItemVetor(VetorInt *vetor_adicionar, int valor_adicionar);
+int procuraItemVetor(VetorInt *vetor_procurar, int valor_procurar);
+void removerItemVetor(VetorInt *vetor_excluir, int item_excluir);
+void inserirItemNaPosicao(VetorInt *vetor_inserir, int posicao, int valor_inserir);
+int pegarItemDoVetor(VetorInt *vetor, int posicao);
+VetorInt criaVetorInt();
+bool estaVazio(VetorInt *vetor);
+void liberarVetorInt(VetorInt *vetor);
+int removerItemVetorPorPosicao(VetorInt *vetor, int posicao);
+void visitarVertices(Grafo *grafo, Vertice vertice, int id_vertice_pai, VetorInt *vetor_salvar);
 
 int main() {
     Grafo *grafo = criaGrafo();
@@ -585,6 +603,7 @@ void menorCicloHamiltoniano(Grafo *grafo){
     printf("\n\nPeso do grafo original e de %.2f\n", pesoTotalGrafo(grafo));
     printf("\n\nPeso e de %.2f\n", pesoTotalGrafo(mst));
 
+    /*
     Grafo *subgrafo_vertices_impares = subgrafoVerticesGrauImparSemArestas(mst);
 
     imprimeGrafo(subgrafo_vertices_impares);
@@ -607,6 +626,13 @@ void menorCicloHamiltoniano(Grafo *grafo){
 
     imprimeGrafo(subgrafo_vertices_impares);
     liberaGrafo(subgrafo_vertices_impares);
+    */
+    //VetorInt ciclo_euleriano = cicloEuleriano(mst, mst->vertices[0]);
+    VetorInt vertices_percorridos = criaVetorInt();
+    visitarVertices(mst, mst->vertices[0], -1, &vertices_percorridos);
+    
+    // Agora e so criar as arestas ligando cada um
+    liberarVetorInt(&vertices_percorridos);
     liberaGrafo(mst);
 }
 
@@ -651,3 +677,194 @@ Grafo *subgrafoVerticesGrauImpar(Grafo *grafo){
 }
 
 
+VetorInt cicloEuleriano(Grafo *grafo, Vertice vertice_inicial){
+    VetorInt ciclo = criaVetorInt();
+    // Criar um grafo e ir seguindo o caminho das arestas??
+    if (grafo == NULL) return ciclo;
+
+    const int posciao_vertice_inicial = procurarVerticePorID(grafo, vertice_inicial.id_vertice);
+    if (posciao_vertice_inicial == -1) {
+        printf("\nO vertice inicial nao esta no grafo passado");
+        return ciclo;
+    }
+
+    
+    int numero_arestas_grafo = numeroArestasNoGrafo(grafo);
+    int posicao_vertice_atual = posciao_vertice_inicial;
+    int num_vertices_grafo = grafo->numero_vertices;
+    
+    // Salvo os vertices que ja foram visitados
+    int num_arestas_percorridas = 0;
+    Aresta *arestas_percorridas = (Aresta *) malloc(numero_arestas_grafo * sizeof(Aresta));
+    if (arestas_percorridas == NULL){
+        printf("\n ERRO AO ALOCAR MEMORIA");
+        return ciclo;
+    }
+    memset(arestas_percorridas, 0, numero_arestas_grafo * sizeof(Aresta));
+
+    VetorInt pilha = criaVetorInt();
+
+    VetorInt vertices_visitados = criaVetorInt();
+    
+    while (num_arestas_percorridas != numero_arestas_grafo && vertices_visitados.tamanho != num_vertices_grafo) {
+        adicionaItemVetor(&ciclo, grafo->vertices[posicao_vertice_atual].id_vertice);
+        printf("%d ", grafo->vertices[posicao_vertice_atual].id_vertice);
+
+        inserirItemNaPosicao(&pilha, -1, posicao_vertice_atual);
+
+        bool alterado = false;
+        for (int c = 0; c < grafo->vertices[posicao_vertice_atual].numero_arestas; c++){
+            if (procuraItemVetor(&vertices_visitados, grafo->vertices[posicao_vertice_atual].arestas[c].id_vertice_02) == -1){
+                alterado = true;
+                adicionaItemVetor(&vertices_visitados, grafo->vertices[posicao_vertice_atual].id_vertice);
+                arestas_percorridas[num_arestas_percorridas++] = grafo->vertices[posicao_vertice_atual].arestas[c];
+                posicao_vertice_atual = procurarVerticePorID(grafo, grafo->vertices[posicao_vertice_atual].arestas[c].id_vertice_02);
+                break;
+            }
+            if (procurarArestaVetor(arestas_percorridas, num_arestas_percorridas, grafo->vertices[posicao_vertice_atual].arestas[c]) == -1){
+                // Aresta nao percorrida
+                alterado = true;
+                arestas_percorridas[num_arestas_percorridas++] = grafo->vertices[posicao_vertice_atual].arestas[c];
+                posicao_vertice_atual = procurarVerticePorID(grafo, grafo->vertices[posicao_vertice_atual].arestas[c].id_vertice_02);
+                break;
+            }
+        }
+        if (alterado == false){
+            posicao_vertice_atual = pegarItemDoVetor(&pilha, -1);
+            removerItemVetorPorPosicao(&pilha, -1);
+        }
+    }
+    free(arestas_percorridas);
+    return ciclo;
+}
+
+void visitarVertices(Grafo *grafo, Vertice vertice, int id_vertice_pai, VetorInt *vetor_salvar){
+    printf("%d ", vertice.id_vertice);
+    adicionaItemVetor(vetor_salvar, vertice.id_vertice);
+    for (int c = 0; c < vertice.numero_arestas; c++){
+        if (vertice.arestas[c].id_vertice_02 != id_vertice_pai){
+            visitarVertices(grafo, grafo->vertices[procurarVerticePorID(grafo, vertice.arestas[c].id_vertice_02)], vertice.id_vertice, vetor_salvar);
+        }
+    }
+}
+
+
+int numeroArestasNoGrafo(Grafo *grafo){
+    int numero_arestas = 0;
+    if (grafo) {
+        for (int c = 0; c < grafo->numero_vertices; c++){
+            numero_arestas += grafo->vertices[c].numero_arestas;
+        }
+    }
+    return numero_arestas;
+}
+
+int procurarArestaVetor(Aresta *vetor_arestas, int tamanho_vetor, Aresta aresta_procurar){
+    if (vetor_arestas == NULL) return -1;
+    for (int c = 0; c < tamanho_vetor; c++) {
+        if (
+            vetor_arestas[c].id_vertice_01 == aresta_procurar.id_vertice_01 &&
+            vetor_arestas[c].id_vertice_02 == aresta_procurar.id_vertice_02 &&
+            vetor_arestas[c].peso == aresta_procurar.peso
+        ){
+            return c;
+        }
+    }
+
+    return -1;
+}
+
+void adicionaItemVetor(VetorInt *vetor_adicionar, int valor_adicionar){
+    if (vetor_adicionar){
+        vetor_adicionar->tamanho++;
+        vetor_adicionar->vetor = realloc(vetor_adicionar->vetor, vetor_adicionar->tamanho * sizeof(int));
+        if (vetor_adicionar->vetor){
+            vetor_adicionar->vetor[vetor_adicionar->tamanho - 1] = valor_adicionar;
+        }
+        else{
+            vetor_adicionar->tamanho = 0;
+        }
+    }
+}
+int procuraItemVetor(VetorInt *vetor_procurar, int valor_procurar){
+    if (vetor_procurar){
+        for (int c = 0; c < vetor_procurar->tamanho; c++){
+            if (valor_procurar == vetor_procurar->vetor[c]){
+                return c;
+            }
+        }
+    }
+    return -1;
+}
+void removerItemVetor(VetorInt *vetor_excluir, int item_excluir){
+    if (vetor_excluir){
+        removerItemVetorPorPosicao(vetor_excluir, procuraItemVetor(vetor_excluir, item_excluir));
+    }
+}
+int removerItemVetorPorPosicao(VetorInt *vetor, int posicao) {
+    if (vetor){
+        if (posicao >=0 && posicao < vetor->tamanho){
+            int valor = vetor->vetor[posicao];
+            memmove(&vetor->vetor[posicao], &vetor->vetor[posicao + 1], sizeof(int) * (vetor->tamanho - posicao));
+            vetor->tamanho--;
+            vetor->vetor = realloc(vetor->vetor, vetor->tamanho * sizeof(int));
+            if (vetor->vetor == NULL){
+                vetor->tamanho = 0;
+            }
+            return valor;
+        }   
+    }
+    return 0;
+}
+int pegarItemDoVetor(VetorInt *vetor, int posicao){
+    if (vetor){
+        if (posicao < 0){
+            posicao += vetor->tamanho;
+        }
+        if (posicao >=0 && posicao < vetor->tamanho){
+            return vetor->vetor[posicao];
+        }
+    }
+    return 0;
+}
+void inserirItemNaPosicao(VetorInt *vetor_inserir, int posicao, int valor_inserir){
+    if (vetor_inserir){
+        if (posicao < 0) {
+            posicao += vetor_inserir->tamanho;
+        }
+        if (posicao < vetor_inserir->tamanho && posicao >= 0){
+            if (posicao == vetor_inserir->tamanho - 1){
+                adicionaItemVetor(vetor_inserir, valor_inserir);
+                return;
+            }
+            vetor_inserir->tamanho++;
+            vetor_inserir->vetor = realloc(vetor_inserir->vetor, vetor_inserir->tamanho * sizeof(int));
+            if (vetor_inserir->vetor == NULL){
+                vetor_inserir->tamanho = 0;
+                return;
+            }
+            memmove(&vetor_inserir[posicao + 1], &vetor_inserir[posicao], sizeof(int) * (vetor_inserir->tamanho - posicao));
+            vetor_inserir->vetor[posicao] = valor_inserir;
+        }
+    }
+}
+VetorInt criaVetorInt(){
+    VetorInt temp = {  
+        .tamanho = 0,
+        .vetor = NULL
+    };
+    return temp;
+}
+bool estaVazio(VetorInt *vetor){
+    if (vetor->tamanho == 0) return true;
+    return false;
+}
+void liberarVetorInt(VetorInt *vetor){
+    if (vetor){
+        if (vetor->vetor){
+            free(vetor->vetor);
+            vetor->vetor = NULL;
+        }
+        vetor->tamanho = 0;
+    }
+}
