@@ -107,6 +107,7 @@ bool estaVazio(VetorInt *vetor);
 void liberarVetorInt(VetorInt *vetor);
 int removerItemVetorPorPosicao(VetorInt *vetor, int posicao);
 void visitarVertices(Grafo *grafo, Vertice vertice, int id_vertice_pai, VetorInt *vetor_salvar);
+Grafo *recriaGrafo(Grafo *grafo_original, VetorInt *sequencia_vertices);
 
 int main() {
     Grafo *grafo = criaGrafo();
@@ -629,8 +630,13 @@ void menorCicloHamiltoniano(Grafo *grafo){
     */
     //VetorInt ciclo_euleriano = cicloEuleriano(mst, mst->vertices[0]);
     VetorInt vertices_percorridos = criaVetorInt();
-    visitarVertices(mst, mst->vertices[0], -1, &vertices_percorridos);
+    int inicial = rand() % mst->numero_vertices;
+    visitarVertices(mst, mst->vertices[inicial], -1, &vertices_percorridos);
     
+    Grafo *ciclo_hamiltoniano = recriaGrafo(grafo, &vertices_percorridos);
+    imprimeGrafo(ciclo_hamiltoniano);
+    printf("\n\nPeso e de %.2f\n", pesoTotalGrafo(ciclo_hamiltoniano));
+    liberaGrafo(ciclo_hamiltoniano);
     // Agora e so criar as arestas ligando cada um
     liberarVetorInt(&vertices_percorridos);
     liberaGrafo(mst);
@@ -645,7 +651,7 @@ float pesoTotalGrafo(Grafo *grafo){
         }
     }
 
-    return peso_total / 2;    // Tem que dividir senão a contagem é feita duplicada
+    return peso_total / (float) 2.0;    // Tem que dividir senão a contagem é feita duplicada
 }
 
 int grauDoVertice(Vertice vertice){
@@ -748,6 +754,41 @@ void visitarVertices(Grafo *grafo, Vertice vertice, int id_vertice_pai, VetorInt
     }
 }
 
+Grafo *recriaGrafo(Grafo *grafo_original, VetorInt *sequencia_vertices){
+    if (grafo_original == NULL || sequencia_vertices == NULL) return NULL;
+    Grafo *novo_grafo = criaGrafo();
+    for (int c = 0; c < sequencia_vertices->tamanho; c++) {
+        adicionarVertice(novo_grafo, criaVertice(sequencia_vertices->vetor[c]));
+    }
+
+    for (int c = 0; c < novo_grafo->numero_vertices; c++){
+        int posicao_vertice_01 = procurarVerticePorID(grafo_original, novo_grafo->vertices[c % novo_grafo->numero_vertices].id_vertice);
+        int posicao_vertice_02 = procurarVerticePorID(grafo_original, novo_grafo->vertices[(c + 1) % novo_grafo->numero_vertices].id_vertice);
+        int posicao_aresta = procurarAresta(grafo_original->vertices[posicao_vertice_01], grafo_original->vertices[posicao_vertice_02]);
+        int id_v_01 = grafo_original->vertices[posicao_vertice_01].id_vertice;
+        int id_v_02 = grafo_original->vertices[posicao_vertice_02].id_vertice;
+        float peso = grafo_original->vertices[posicao_vertice_01].arestas[posicao_aresta].peso;
+
+        adicionarAresta(
+            &novo_grafo->vertices[c % novo_grafo->numero_vertices],
+            criaAresta(
+                id_v_01,
+                id_v_02,
+                peso
+            )
+        );
+        adicionarAresta(
+            &novo_grafo->vertices[(c + 1) % novo_grafo->numero_vertices],
+            criaAresta(
+                id_v_02,
+                id_v_01,
+                peso
+            )
+        );
+    }    
+
+    return novo_grafo;
+}
 
 int numeroArestasNoGrafo(Grafo *grafo){
     int numero_arestas = 0;
