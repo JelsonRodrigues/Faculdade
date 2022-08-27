@@ -5,6 +5,15 @@
 #include "vetorInt.h"
 #include "grafo.h"
 
+
+// Para implementar o algoritmo de forca bruta eu tenho que escolher um vertice aleatorio
+// ir de forma recursiva, mas tenho que ter uma estrutura auxiliar, uma pilha provavelmente
+// e a cada vez que chamar a funcao, adicionar no inicio o vertice atual
+// fazer um for e verificar se o proximo de cada aresta ja foi visitado (procurando na pilha),
+// se nao foi vai pra ele
+// quando todos os vertices ja tiverem sidos visitados, imprimir o caminho e o custo,
+// remover o vertice atual da pilha
+
 /* 
     A velocidade do programa será muito maior se eu implementar o vetor de vértices (grafo)
     e o vetor de arestar (vertice) de forma ordenada e realizar as buscas por procura binária
@@ -103,12 +112,23 @@ void lerArquivo(Grafo *grafo){
     delimitador = " "
     arquivo = tsp1_253
 
+    ------Com erro de leitura-------
+    delimitador = ?
+    arquivo = tsp2_1248
+    
+    delimitador = ?
+    arquivo = tsp3_1194
+    --------------------------------
+
     delimitador = "\t"
-    arquivo = tsp1_253
+    arquivo = tsp4_7013
+
+    delimitador = " "
+    arquivo = tsp5_27603
     */
 
-    char delimitador[] = "\t";
-    grafo = lerDeArquivo("./tsp2_1248.txt", delimitador);
+    char delimitador[] = " ";
+    grafo = lerDeArquivo("./tsp1_253.txt", delimitador);
     if (grafo == NULL){
         printf("\nERRO AO LER ARQUIVO!!!\n");
     }
