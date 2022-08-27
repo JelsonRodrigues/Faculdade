@@ -7,11 +7,9 @@ binario = christofides.o
 
 make: $(objeto_bibliotecas)
 	make bibliotecas
-	$(compilador) $(flags) -o $(binario) $(arquivo) $(objeto_bibliotecas)
-debug:
 	$(compilador) $(flags) -g -o $(binario) $(arquivo) $(objeto_bibliotecas)
 bibliotecas:
-	$(compilador) $(flags) -c $(bibliotecas) 
+	$(compilador) $(flags) -g -c $(bibliotecas) 
 mtest:
 	valgrind --leak-check=full ./$(binario)
 otimizado:
