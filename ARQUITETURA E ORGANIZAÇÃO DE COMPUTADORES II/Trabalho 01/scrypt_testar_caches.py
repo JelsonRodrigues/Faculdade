@@ -34,7 +34,7 @@ def simulaCacheInstrucoes(tamanho_total_cache : int, tamanho_do_bloco : int, ass
         bsyze = tamanho_do_bloco
         repl = politica_substituicao
 
-        arquivo_saida += f"_{nsets}:{bsyze}:{assoc}:{repl}.out"
+        arquivo_saida += f"_{nsets}:{bsyze}:{assoc}:{repl}_instrucoes.out"
 
         comando = print(f"{local_sim_cache} -cache:il1 il1:{nsets}:{bsyze}:{assoc}:{repl} -cache:il2 none -cache:dl1 none -cache:dl2 none -tlb:itlb none -tlb:dtlb none -redir:sim {arquivo_saida} {benchmark}")
         print(f"COMANDO = {comando}")
@@ -48,9 +48,23 @@ def simulaCacheDados(tamanho_total_cache : int, tamanho_do_bloco : int, associat
         bsyze = tamanho_do_bloco
         repl = politica_substituicao
 
-        arquivo_saida += f"_{nsets}:{bsyze}:{assoc}:{repl}.out"
+        arquivo_saida += f"_{nsets}:{bsyze}:{assoc}:{repl}_dados.out"
 
         comando = f"{local_sim_cache} -cache:il1 none -cache:il2 none -cache:dl1 dl1:{nsets}:{bsyze}:{assoc}:{repl} -cache:dl2 none -tlb:itlb none -tlb:dtlb none -redir:sim {arquivo_saida} {benchmark}"
+        print(f"COMANDO = {comando}")
+        os.system(comando)
+
+def simulaCacheUnificada(tamanho_total_cache : int, tamanho_do_bloco : int, associatividade : int, politica_substituicao : str, benchmark : str, arquivo_saida : str):
+        if associatividade < 1: # Totalmente associativa
+            associatividade = int(tamanho_total_cache / tamanho_do_bloco)
+        assoc = associatividade
+        nsets = int(tamanho_total_cache / tamanho_do_bloco / assoc)
+        bsyze = tamanho_do_bloco
+        repl = politica_substituicao
+
+        arquivo_saida += f"_{nsets}:{bsyze}:{assoc}:{repl}_unificada.out"
+        
+        comando = f"{local_sim_cache} -cache:il1 dl1 -cache:dl1 ul1:{nsets}:{bsyze}:{assoc}:{repl} -cache:il2 none -cache:dl2 none -tlb:itlb none -tlb:dtlb none -redir:sim {arquivo_saida} {benchmark}"
         print(f"COMANDO = {comando}")
         os.system(comando)
 
@@ -94,28 +108,44 @@ def exercicio_02(tamanho_total_cache : int):
         # RANDOM
         simulaCacheDados(tamanho_total_cache, 16, 0, 'r', benchmark, f"{pasta_base}/EX02/Dados/{nome}")
 
-def exercicio_03(tamanho_total_cache : int, tamanho_do_bloco : int):
+def exercicio_03(tamanho_total_cache : int):
     for nome, benchmark in benchmarks.items():
         """ INSTRUCOES """
         # Mapeamento direto        
-        simulaCacheInstrucoes(tamanho_total_cache, tamanho_do_bloco, 1, 'r', benchmark, f"{pasta_base}/EX03/Instrucoes/{nome}")
+        simulaCacheInstrucoes(tamanho_total_cache, 16, 2, 'f', benchmark, f"{pasta_base}/EX03/Instrucoes/{nome}")
         # Mapeamento 2-vias
-        simulaCacheInstrucoes(tamanho_total_cache, tamanho_do_bloco, 2, 'r', benchmark, f"{pasta_base}/EX03/Instrucoes/{nome}")
+        simulaCacheInstrucoes(tamanho_total_cache, 32, 2, 'f', benchmark, f"{pasta_base}/EX03/Instrucoes/{nome}")
         # Mapeamento 4-vias
-        simulaCacheInstrucoes(tamanho_total_cache, tamanho_do_bloco, 4, 'r', benchmark, f"{pasta_base}/EX03/Instrucoes/{nome}")
+        simulaCacheInstrucoes(tamanho_total_cache, 64, 2, 'f', benchmark, f"{pasta_base}/EX03/Instrucoes/{nome}")
         # Mapeamento Totalmente associativo
-        simulaCacheInstrucoes(tamanho_total_cache, tamanho_do_bloco, 0, 'r', benchmark, f"{pasta_base}/EX03/Instrucoes/{nome}")
+        simulaCacheInstrucoes(tamanho_total_cache, 128, 2, 'f', benchmark, f"{pasta_base}/EX03/Instrucoes/{nome}")
 
         """ DADOS """
         # Mapeamento direto        
-        simulaCacheDados(tamanho_total_cache, tamanho_do_bloco, 1, 'r', benchmark, f"{pasta_base}/EX03/Dados/{nome}")
+        simulaCacheDados(tamanho_total_cache, 16, 2, 'f', benchmark, f"{pasta_base}/EX03/Dados/{nome}")
         # Mapeamento 2-vias
-        simulaCacheDados(tamanho_total_cache, tamanho_do_bloco, 2, 'r', benchmark, f"{pasta_base}/EX03/Dados/{nome}")
+        simulaCacheDados(tamanho_total_cache, 32, 2, 'f', benchmark, f"{pasta_base}/EX03/Dados/{nome}")
         # Mapeamento 4-vias
-        simulaCacheDados(tamanho_total_cache, tamanho_do_bloco, 4, 'r', benchmark, f"{pasta_base}/EX03/Dados/{nome}")
+        simulaCacheDados(tamanho_total_cache, 64, 2, 'f', benchmark, f"{pasta_base}/EX03/Dados/{nome}")
         # Mapeamento Totalmente associativo
-        simulaCacheDados(tamanho_total_cache, tamanho_do_bloco, 0, 'r', benchmark, f"{pasta_base}/EX03/Dados/{nome}")
+        simulaCacheDados(tamanho_total_cache, 128, 2, 'f', benchmark, f"{pasta_base}/EX03/Dados/{nome}")
+
+def exercicio_04(tamanho_total_cache : int, tamanho_do_bloco : int, associatividade : int, politica_de_substituicao : str):
+    for nome, benchmark in benchmarks.items():
+        """ INSTRUCOES """
+        # Mapeamento direto        
+        simulaCacheInstrucoes(tamanho_total_cache, tamanho_do_bloco, associatividade, politica_de_substituicao, benchmark, f"{pasta_base}/EX04/Instrucoes/{nome}")
+
+        """ DADOS """
+        # Mapeamento direto        
+        simulaCacheDados(tamanho_total_cache, tamanho_do_bloco, associatividade, politica_de_substituicao, benchmark, f"{pasta_base}/EX04/Dados/{nome}")
+
+        """ CACHE UNIFICADA"""
+        # Mapeamento direto
+        simulaCacheUnificada(tamanho_total_cache * 2, tamanho_do_bloco, associatividade, politica_de_substituicao, benchmark, f"{pasta_base}/EX04/{nome}")
+
+        ### AINDA FALTA ESCREVER O CODIGO QUE VAI GERAR OS RESULTADOS PARA O BONUS DO EXERCICIO
 
 exercicio_01(tamanho_total_cache=256 * 1024, tamanho_do_bloco=8)
 exercicio_02(tamanho_total_cache=256 * 1024)
-## exercicio_03(tamanho_total_cache=256)
+exercicio_03(tamanho_total_cache=256 * 1024)
