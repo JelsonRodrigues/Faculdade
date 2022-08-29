@@ -1,6 +1,4 @@
 import os
-import sys
-import glob
 
 """-------------------"""
 
@@ -36,7 +34,7 @@ def simulaCacheInstrucoes(tamanho_total_cache : int, tamanho_do_bloco : int, ass
 
         arquivo_saida += f"_{nsets}:{bsyze}:{assoc}:{repl}_instrucoes.out"
 
-        comando = print(f"{local_sim_cache} -cache:il1 il1:{nsets}:{bsyze}:{assoc}:{repl} -cache:il2 none -cache:dl1 none -cache:dl2 none -tlb:itlb none -tlb:dtlb none -redir:sim {arquivo_saida} {benchmark}")
+        comando = f"{local_sim_cache} -cache:il1 il1:{nsets}:{bsyze}:{assoc}:{repl} -cache:il2 none -cache:dl1 none -cache:dl2 none -tlb:itlb none -tlb:dtlb none -redir:sim {arquivo_saida} {benchmark}"
         print(f"COMANDO = {comando}")
         os.system(comando)
 
@@ -146,6 +144,6 @@ def exercicio_04(tamanho_total_cache : int, tamanho_do_bloco : int, associativid
 
         ### AINDA FALTA ESCREVER O CODIGO QUE VAI GERAR OS RESULTADOS PARA O BONUS DO EXERCICIO
 
-exercicio_01(tamanho_total_cache=256 * 1024, tamanho_do_bloco=8)
+exercicio_01(tamanho_total_cache=256 * 1024, tamanho_do_bloco=32)
 exercicio_02(tamanho_total_cache=256 * 1024)
 exercicio_03(tamanho_total_cache=256 * 1024)
