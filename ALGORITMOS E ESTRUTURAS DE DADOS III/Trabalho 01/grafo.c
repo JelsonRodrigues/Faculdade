@@ -493,3 +493,37 @@ int numeroArestasNoGrafo(Grafo *grafo){
     }
     return numero_arestas;
 }
+
+void percorrerTodosCaminhos(Grafo *grafo, int indice_vertice, VetorInt *indices_caminho_atual, float *menor_valor, float *maior_valor){
+    if (grafo){
+        // Percorreu todo um caminho
+        if (indices_caminho_atual->tamanho == grafo->numero_vertices){
+            // Calcula o custo do caminho percorrido e retorna
+            float peso_caminho = 0.0;
+            for (int c = 0; c < indices_caminho_atual->tamanho; c++){
+                int posicao_aresta = procurarArestaPorID(grafo->vertices[indices_caminho_atual->vetor[c]], indices_caminho_atual->vetor[(c + 1) % indices_caminho_atual->tamanho]);
+                peso_caminho += grafo->vertices[indices_caminho_atual->vetor[c]].arestas[posicao_aresta].peso;
+            }
+
+            if (peso_caminho < *menor_valor) {
+                *menor_valor = peso_caminho;
+                printf("\nMENOR PESO = %.2f", *menor_valor);
+            }
+            if (peso_caminho > *maior_valor) {
+                *maior_valor = peso_caminho;
+                printf("\nMAIOR PESO = %.2f", *maior_valor);
+            }
+
+        }
+        else {
+            for (int c = 0; c < grafo->vertices[indice_vertice].numero_arestas; c++){
+                if (procuraItemVetor(indices_caminho_atual, grafo->vertices[indice_vertice].arestas[c].id_vertice_02) == -1){
+                    int pos_prox_vertice = procurarVerticePorID(grafo, grafo->vertices[indice_vertice].arestas[c].id_vertice_02);
+                    inserirItemNaPosicao(indices_caminho_atual, -1, pos_prox_vertice);
+                    percorrerTodosCaminhos(grafo, pos_prox_vertice, indices_caminho_atual, menor_valor, maior_valor);
+                }
+            }
+        }
+        removerItemVetorPorPosicao(indices_caminho_atual, indices_caminho_atual->tamanho - 1);
+    }
+}

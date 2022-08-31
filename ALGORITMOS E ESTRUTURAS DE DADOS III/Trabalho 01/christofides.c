@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <time.h>
+#include <limits.h>
 #include "vetorInt.h"
 #include "grafo.h"
 
@@ -178,4 +179,18 @@ void menorCicloHamiltoniano(Grafo *grafo){
     printf("\n\tMENOR: %f", menor_peso);
     printf("\n\tMAIOR: %f", maior_peso);
     printf("\n\n");
+
+
+    printf("\n\n\nRODANDO O ALGORITMO EXATO!!!");
+    
+    int pos_vertice_inicial = 0;
+    VetorInt indices_percorridos = criaVetorInt();
+    adicionaItemVetor(&indices_percorridos, pos_vertice_inicial);
+    float min = __FLT_MAX__;
+    float max = __FLT_MIN__;
+    percorrerTodosCaminhos(grafo, pos_vertice_inicial, &indices_percorridos, &min, &max);
+    
+    liberarVetorInt(&indices_percorridos);
+    printf("\nMENOR CAMINHO -> %f", min);
+    printf("\nMAIOR CAMINHO -> %f", max);
 }
