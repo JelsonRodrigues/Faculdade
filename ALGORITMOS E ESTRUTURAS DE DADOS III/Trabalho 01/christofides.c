@@ -8,27 +8,7 @@
 
 // TODO: Corrigir leaks de memória e implementar o algoritmo de blossom
 
-// Para implementar o algoritmo de forca bruta eu tenho que escolher um vertice aleatorio
-// ir de forma recursiva, mas tenho que ter uma estrutura auxiliar, uma pilha provavelmente
-// e a cada vez que chamar a funcao, adicionar no inicio o vertice atual
-// fazer um for e verificar se o proximo de cada aresta ja foi visitado (procurando na pilha),
-// se nao foi vai pra ele
-// quando todos os vertices ja tiverem sidos visitados, imprimir o caminho e o custo,
-// remover o vertice atual da pilha
-
-/* 
-    A velocidade do programa será muito maior se eu implementar o vetor de vértices (grafo)
-    e o vetor de arestar (vertice) de forma ordenada e realizar as buscas por procura binária
-    Pra fazer isso é bem fácil na verdade, após a leitura dos valores do arquivo é só rodar um
-    quicksort, ou alterar as funções de inserir aresta e vertice para inserir de forma ordenada.
-    
-    Ou se eu souber de antemão o número máximo de vértices e/ou de arestas eu possso implementar
-    como uma hashtable que a velocidade seria maior ainda (a maior de todas na verdade)
-    Na verdade como eu leio do arquivo o grafo e a cada linha/coluna é um vértice, dá pra mim
-    criar uma hash pequena de início e como os valores de vértice são sempre incrementais (sempre diferentes),
-    quando estiver enchendo a tabela eu aumento, não vai haver colisão neste caso. 
-    Já para as arestas não é bem assim porque os valores não são incrementais (não necessariamente).
-*/
+// REMOVER LEAKS DE MEMÓRIA
 
 // Funções do programa
 typedef enum {LER_VERTICES_DE_ARQUIVO=1, MOSTRAR_GRAFO, MENOR_CICLO_HAMILTONIANO, SAIR} OPCAO_MENU;
