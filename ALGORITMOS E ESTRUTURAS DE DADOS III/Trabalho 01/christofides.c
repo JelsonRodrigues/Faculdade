@@ -6,6 +6,7 @@
 #include "vetorInt.h"
 #include "grafo.h"
 
+// TODO: Corrigir leaks de memória e implementar o algoritmo de blossom
 
 // Para implementar o algoritmo de forca bruta eu tenho que escolher um vertice aleatorio
 // ir de forma recursiva, mas tenho que ter uma estrutura auxiliar, uma pilha provavelmente
