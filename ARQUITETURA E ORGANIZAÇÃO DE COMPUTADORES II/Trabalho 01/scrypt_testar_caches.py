@@ -66,38 +66,6 @@ def simulaCacheUnificada(tamanho_total_cache : int, tamanho_do_bloco : int, asso
         print(f"COMANDO = {comando}")
         os.system(comando)
 
-def simulaCacheComL2(tamanho_total_cache_l1 : int, proporcao_cache_l2: int, tamanho_do_bloco : int, associatividade : int, politica_substituicao : str, benchmark : str, arquivo_saida : str):
-    if associatividade < 1: # Totalmente associativa
-        associatividade = int(tamanho_total_cache_l1 / tamanho_do_bloco)
-    assoc = associatividade
-    nsets = int(tamanho_total_cache_l1 / tamanho_do_bloco / assoc)
-    bsyze = tamanho_do_bloco
-    repl = politica_substituicao
-
-    nsets_cache_l2 = int((tamanho_total_cache_l1 * proporcao_cache_l2) / tamanho_do_bloco / assoc)
-
-    arquivo_saida += f"_{nsets}:{bsyze}:{assoc}:{repl}_l2_separada_{nsets_cache_l2}.out"
-
-    comando = f"{local_sim_cache} -cache:il1 il1:{nsets}:{bsyze}:{assoc}:{repl} -cache:il2 il2:{nsets_cache_l2}:{bsyze}:{assoc}:{repl} -cache:dl1 dl1:{nsets}:{bsyze}:{assoc}:{repl} -cache:dl2 dl2:{nsets_cache_l2}:{bsyze}:{assoc}:{repl} -tlb:itlb none -tlb:dtlb none -redir:sim {arquivo_saida} {benchmark}"
-    print(f"COMANDO = {comando}")
-    os.system(comando)
-
-def simulaCacheUnificadaComL2(tamanho_total_cache_l1 : int, proporcao_cache_l2: int, tamanho_do_bloco : int, associatividade : int, politica_substituicao : str, benchmark : str, arquivo_saida : str):
-    if associatividade < 1: # Totalmente associativa
-        associatividade = int(tamanho_total_cache_l1 / tamanho_do_bloco)
-    assoc = associatividade
-    nsets = int(tamanho_total_cache_l1 / tamanho_do_bloco / assoc)
-    bsyze = tamanho_do_bloco
-    repl = politica_substituicao
-
-    nsets_cache_l2 = int((tamanho_total_cache_l1 * proporcao_cache_l2) / tamanho_do_bloco / assoc)
-
-    arquivo_saida += f"_{nsets}:{bsyze}:{assoc}:{repl}_unificada_l2_{nsets_cache_l2}.out"
-
-    comando = f"{local_sim_cache} -cache:il1 il1:{nsets}:{bsyze}:{assoc}:{repl} -cache:il2 dl2 -cache:dl1 dl1:{nsets}:{bsyze}:{assoc}:{repl} -cache:dl2 ul2:{nsets_cache_l2}:{bsyze}:{assoc}:{repl} -tlb:itlb none -tlb:dtlb none -redir:sim {arquivo_saida} {benchmark}"
-    print(f"COMANDO = {comando}")
-    os.system(comando)
-
 def exercicio_01(tamanho_total_cache : int, tamanho_do_bloco : int):
     for nome, benchmark in benchmarks.items():
         """ INSTRUCOES """
@@ -163,25 +131,19 @@ def exercicio_03(tamanho_total_cache : int):
 def exercicio_04(tamanho_total_cache : int, tamanho_do_bloco : int, associatividade : int, politica_de_substituicao : str):
     for nome, benchmark in benchmarks.items():
         """ INSTRUCOES """
+        # Mapeamento direto        
         simulaCacheInstrucoes(tamanho_total_cache, tamanho_do_bloco, associatividade, politica_de_substituicao, benchmark, f"{pasta_base}/EX04/Instrucoes/{nome}")
 
         """ DADOS """
+        # Mapeamento direto        
         simulaCacheDados(tamanho_total_cache, tamanho_do_bloco, associatividade, politica_de_substituicao, benchmark, f"{pasta_base}/EX04/Dados/{nome}")
 
         """ CACHE UNIFICADA"""
+        # Mapeamento direto
         simulaCacheUnificada(tamanho_total_cache * 2, tamanho_do_bloco, associatividade, politica_de_substituicao, benchmark, f"{pasta_base}/EX04/{nome}")
 
-        
-def exercicio_04_bonus(tamanho_total_cache : int, proporcao_cache_l2 : int, tamanho_do_bloco : int, associatividade : int, politica_de_substituicao : str):
-    for nome, benchmark in benchmarks.items():
-        """ UMA CACHE L2 PARA DADOS E OUTRA PARA INSTRUCOES """
-        simulaCacheComL2(tamanho_total_cache, proporcao_cache_l2, tamanho_do_bloco, associatividade, politica_de_substituicao, benchmark, f"{pasta_base}/EX04/Instrucoes/{nome}")
+        ### AINDA FALTA ESCREVER O CODIGO QUE VAI GERAR OS RESULTADOS PARA O BONUS DO EXERCICIO
 
-        """ CACHE UNIFICADA """
-        simulaCacheUnificadaComL2(tamanho_total_cache, proporcao_cache_l2 * 2, tamanho_do_bloco, associatividade, politica_de_substituicao, benchmark, f"{pasta_base}/EX04/{nome}")    
-
-exercicio_01(tamanho_total_cache=4 * 1024, tamanho_do_bloco=16)
-exercicio_02(tamanho_total_cache=2 * 1024)
-exercicio_03(tamanho_total_cache=16 * 1024)
-exercicio_04(16*1024, 32, 2, 'f')
-exercicio_04_bonus(16 * 1024, 16, 32, 2, 'f')
+exercicio_01(tamanho_total_cache=256 * 1024, tamanho_do_bloco=32)
+exercicio_02(tamanho_total_cache=256 * 1024)
+exercicio_03(tamanho_total_cache=256 * 1024)
