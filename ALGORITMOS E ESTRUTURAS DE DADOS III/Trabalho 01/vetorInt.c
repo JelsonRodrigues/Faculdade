@@ -31,7 +31,9 @@ int removerItemVetorPorPosicao(VetorInt *vetor, int posicao) {
     if (vetor){
         if (posicao >=0 && posicao < vetor->tamanho){
             int valor = vetor->vetor[posicao];
-            memmove(&vetor->vetor[posicao], &vetor->vetor[posicao + 1], sizeof(int) * (vetor->tamanho - posicao));
+            if (posicao < vetor->tamanho - 1){
+                memmove(&vetor->vetor[posicao], &vetor->vetor[posicao + 1], sizeof(int) * (vetor->tamanho - posicao));
+            }
             vetor->tamanho--;
             vetor->vetor = realloc(vetor->vetor, vetor->tamanho * sizeof(int));
             if (vetor->vetor == NULL){
