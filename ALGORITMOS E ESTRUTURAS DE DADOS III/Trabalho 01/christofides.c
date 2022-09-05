@@ -6,6 +6,8 @@
 #include "vetorInt.h"
 #include "grafo.h"
 
+#define NUMERO_ITERACOES_ALGORITMO_APROXIMATIVO 1000
+
 // TODO: Corrigir leaks de memória e implementar o algoritmo de blossom
 
 // Para implementar o algoritmo de forca bruta eu tenho que escolher um vertice aleatorio
@@ -31,47 +33,71 @@
 */
 
 // Funções do programa
-typedef enum {LER_VERTICES_DE_ARQUIVO=1, MOSTRAR_GRAFO, MENOR_CICLO_HAMILTONIANO, SAIR} OPCAO_MENU;
+typedef enum {LER_VERTICES_DE_ARQUIVO=1, MOSTRAR_GRAFO, MENOR_CICLO_HAMILTONIANO_EXATO, MENOR_CICLO_HAMILTONIANO_APROXIMATIVO, SAIR} OPCAO_MENU;
 OPCAO_MENU menu();
 int lerNumeroInteiro();
 
 // Opção do menu 
-void lerArquivo(Grafo *grafo);
+void lerArquivo(Grafo *grafo, char *local_arquivo, char delimitador);
 void mostrarGrafo(Grafo *grafo);
-void menorCicloHamiltoniano(Grafo *grafo);
+void menorCicloHamiltonianoExato(Grafo *grafo);
+void menorCicloHamiltonianoAproximativo(Grafo *grafo);
 void sair(Grafo *grafo);
+void mostrarAjuda();
+bool validaParametros(int argc, char **argv);
 
-int main() {
+int main(int argc, char **argv) {
     Grafo *grafo = criaGrafo();
     if (grafo == NULL) {
         exit(EXIT_FAILURE);
     }
-
+    
     srand(time(NULL));
 
-    OPCAO_MENU escolha_usuario;
-    while (true){
-        escolha_usuario = menu();
+    // Verificação dos parâmetros
+    if (validaParametros(argc, argv)){
+        char *arquivo = argv[1] + strlen("--path=");
+        char delimitador =  argv[2][strlen("--delim=")];
+        char algoritmo = argv[3][strlen("--alg=")];
 
-        switch (escolha_usuario)
-        {
-        case LER_VERTICES_DE_ARQUIVO:
-            lerArquivo(grafo);
-            break;
-        case MOSTRAR_GRAFO:
-            mostrarGrafo(grafo);
-            break;
-        case MENOR_CICLO_HAMILTONIANO:
-            menorCicloHamiltoniano(grafo);
-            break;
-        case SAIR:
-            sair(grafo);
-            break;
-        default:
-            printf("\nOPCAO ERRADA");
-            break;
+        lerArquivo(grafo, arquivo, delimitador);
+
+        if (algoritmo == 'e'){
+            menorCicloHamiltonianoExato(grafo);
         }
-
+        else {
+            menorCicloHamiltonianoAproximativo(grafo);
+        }
+        sair(grafo);
+    }
+    else {
+        printf("\nNÃO FORAM PASSADOS PARÂMETROS OU OS PARÂMETROS CONTÉM ERRO\n");
+        mostrarAjuda(argv[0]);
+        printf("ENTRANDO NO MODO INTERATIVO");
+        
+        while (true){
+            switch (menu())
+            {
+            case LER_VERTICES_DE_ARQUIVO:
+                lerArquivo(grafo, NULL, 0);
+                break;
+            case MOSTRAR_GRAFO:
+                mostrarGrafo(grafo);
+                break;
+            case MENOR_CICLO_HAMILTONIANO_EXATO:
+                menorCicloHamiltonianoExato(grafo);
+                break;
+            case MENOR_CICLO_HAMILTONIANO_APROXIMATIVO:
+                menorCicloHamiltonianoAproximativo(grafo);
+                break;  
+            case SAIR:
+                sair(grafo);
+                break;
+            default:
+                printf("\nOPCAO ERRADA");
+                break;
+            }
+        }
     }
 
     return EXIT_SUCCESS;
@@ -88,13 +114,15 @@ OPCAO_MENU menu(){
         printf("\n");
         printf("\n\t%d LER VERTICES DE ARQUIVO", LER_VERTICES_DE_ARQUIVO);
         printf("\n\t%d MOSTRAR GRAFO", MOSTRAR_GRAFO);
-        printf("\n\t%d MOSTRAR MENOR CICLO HAMILTONIANO (TSP)", MENOR_CICLO_HAMILTONIANO);
+        printf("\n\t%d MOSTRAR MENOR CICLO HAMILTONIANO (TSP) COM ALGORITMO EXATO", MENOR_CICLO_HAMILTONIANO_EXATO);
+        printf("\n\t%d MOSTRAR MENOR CICLO HAMILTONIANO (TSP) COM ALGORITMO APROXIMATIVO", MENOR_CICLO_HAMILTONIANO_APROXIMATIVO);
         printf("\n\t%d SAIR", SAIR);
         printf("\n");
         escolha = lerNumeroInteiro();
     } while (escolha != LER_VERTICES_DE_ARQUIVO &&
              escolha != MOSTRAR_GRAFO &&
-             escolha != MENOR_CICLO_HAMILTONIANO &&
+             escolha != MENOR_CICLO_HAMILTONIANO_EXATO &&
+             escolha != MENOR_CICLO_HAMILTONIANO_APROXIMATIVO &&
              escolha != SAIR
     );
     return escolha;
@@ -108,31 +136,29 @@ int lerNumeroInteiro(){
     return numero;
 }
 
-void lerArquivo(Grafo *grafo){
-    liberaGrafo(grafo);
-    /*
-    delimitador = " "
-    arquivo = tsp1_253
+void lerArquivo(Grafo *grafo, char *local_arquivo, char delimitador){
+    if (grafo) liberaGrafo(grafo);
+    bool local_arquivo_alocado_dinamicamente = false;
+    if (local_arquivo == NULL){
+        printf("\nDigite o local do arquivo: ");
+        size_t tamanho_buffer = 0;
+        getline(&local_arquivo, &tamanho_buffer, stdin);
+        local_arquivo_alocado_dinamicamente = true;
+        
+    }
+    if (delimitador == 0){
+        printf("\nDigite o delimitador do arquivo: ");
+        delimitador = getchar();
+    }
 
-    ------Com erro de leitura-------
-    delimitador = ?
-    arquivo = tsp2_1248
-    
-    delimitador = ?
-    arquivo = tsp3_1194
-    --------------------------------
-
-    delimitador = "\t"
-    arquivo = tsp4_7013
-
-    delimitador = " "
-    arquivo = tsp5_27603
-    */
-
-    char delimitador[] = " ";
-    grafo = lerDeArquivo("./tsp1_253.txt", delimitador);
+    grafo = lerDeArquivo(local_arquivo, &delimitador);
     if (grafo == NULL){
         printf("\nERRO AO LER ARQUIVO!!!\n");
+    }
+
+    if (local_arquivo_alocado_dinamicamente){
+        free(local_arquivo);
+        return;
     }
 }
 
@@ -142,34 +168,30 @@ void mostrarGrafo(Grafo *grafo){
     printf("\n");
 }
 
-void menorCicloHamiltoniano(Grafo *grafo){
+void menorCicloHamiltonianoAproximativo(Grafo *grafo){
+    if (grafo == NULL || grafo->numero_vertices == 0) return;
+    
     float peso_grafo = 0.0;
-    float menor_peso = 0.0;
-    float maior_peso = 0.0;
-    for (int c = 0; c < 1000; c++){
+    float menor_peso = __FLT_MAX__;
+    float maior_peso = __FLT_MIN__;
+    for (int c = 0; c < NUMERO_ITERACOES_ALGORITMO_APROXIMATIVO; c++){
         Grafo *mst = kruskal(grafo);
-        //imprimeGrafo(mst);
-
-        //printf("\n\nPeso do grafo original e de %.2f\n", pesoTotalGrafo(grafo) / (float) 2.0);
-        //printf("\n\nPeso da arvore geradora minima e de %.2f\n", pesoTotalGrafo(mst) / (float) 2.0);
-
+        
         int inicial = rand() % mst->numero_vertices;
         VetorInt vertices_percorridos = visitarVertices(mst, mst->vertices[inicial]);
         
         Grafo *ciclo_hamiltoniano = recriaGrafo(grafo, &vertices_percorridos);
-        //imprimeGrafo(ciclo_hamiltoniano);
 
         peso_grafo = pesoTotalGrafo(ciclo_hamiltoniano) / (float) 2.0;
-        if (peso_grafo < menor_peso || c == 0){
+        if (peso_grafo < menor_peso){
             menor_peso = peso_grafo;
             printf("\n MENOR = %.2f", menor_peso);
         }
-        if (peso_grafo > maior_peso || c == 0){
+        if (peso_grafo > maior_peso){
             maior_peso = peso_grafo;
             printf("\n MAIOR = %.2f", maior_peso);
         }
-        //printf("\n\nPeso e de %.2f\n", pesoTotalGrafo(ciclo_hamiltoniano) / (float) 2.0);
-        
+
         liberaGrafo(ciclo_hamiltoniano);
         liberarVetorInt(&vertices_percorridos);
         liberaGrafo(mst);
@@ -180,11 +202,14 @@ void menorCicloHamiltoniano(Grafo *grafo){
     printf("\n\tMENOR: %f", menor_peso);
     printf("\n\tMAIOR: %f", maior_peso);
     printf("\n\n");
+}
 
-
-    printf("\n\n\nRODANDO O ALGORITMO EXATO!!!");
+void menorCicloHamiltonianoExato(Grafo *grafo){
+    if (grafo == NULL || grafo->numero_vertices == 0) return;
     
-    int pos_vertice_inicial = 0;
+    printf("\n\n\nRODANDO O ALGORITMO EXATO!!!");
+
+    int pos_vertice_inicial = rand() % grafo->numero_vertices;
     VetorInt indices_percorridos = criaVetorInt();
     adicionaItemVetor(&indices_percorridos, pos_vertice_inicial);
     float min = __FLT_MAX__;
@@ -194,4 +219,27 @@ void menorCicloHamiltoniano(Grafo *grafo){
     liberarVetorInt(&indices_percorridos);
     printf("\nMENOR CAMINHO -> %f", min);
     printf("\nMAIOR CAMINHO -> %f", max);
+}
+
+void mostrarAjuda(char *nome_programa){
+    printf("\n");
+    printf("A forma de uso do programa é a seguinte\n");
+    printf("%s --path=caminho_arquivo.csv --delim='delimitador' --alg=algoritmo\n", nome_programa);
+    printf("As opções de algoritmo disponíveis são: \n");
+    printf("\t-e  : algoritmo exato\n");
+    printf("\t-a  : algoritmo aproximativo\n");
+    printf("O delimitador deve ser um caractere e passado entre aspas simples ou duplas\n");
+    printf("\n");
+}
+
+bool validaParametros(int argc, char **argv){
+    if (argc == 4) {
+        if ((strcmp(argv[1], "--path=") > 0) &&
+            (strcmp(argv[2], "--delim=") > 0) &&
+            (strcmp(argv[3], "--alg=") > 0))
+            {
+            return true;
+        }
+    }
+    return false;
 }
