@@ -8,7 +8,7 @@
 
 #define NUMERO_ITERACOES_ALGORITMO_APROXIMATIVO 1000
 
-// TODO: Corrigir leaks de memória e implementar o algoritmo de blossom
+// TODO: implementar o algoritmo de blossom
 
 // Para implementar o algoritmo de forca bruta eu tenho que escolher um vertice aleatorio
 // ir de forma recursiva, mas tenho que ter uma estrutura auxiliar, uma pilha provavelmente
@@ -38,7 +38,7 @@ OPCAO_MENU menu();
 int lerNumeroInteiro();
 
 // Opção do menu 
-void lerArquivo(Grafo *grafo, char *local_arquivo, char delimitador);
+void lerArquivo(Grafo **grafo, char *local_arquivo, char delimitador);
 void mostrarGrafo(Grafo *grafo);
 void menorCicloHamiltonianoExato(Grafo *grafo);
 void menorCicloHamiltonianoAproximativo(Grafo *grafo);
@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
         char delimitador =  argv[2][strlen("--delim=")];
         char algoritmo = argv[3][strlen("--alg=")];
 
-        lerArquivo(grafo, arquivo, delimitador);
+        lerArquivo(&grafo, arquivo, delimitador);
 
         if (algoritmo == 'e'){
             menorCicloHamiltonianoExato(grafo);
@@ -79,7 +79,7 @@ int main(int argc, char **argv) {
             switch (menu())
             {
             case LER_VERTICES_DE_ARQUIVO:
-                lerArquivo(grafo, NULL, 0);
+                lerArquivo(&grafo, NULL, 0);
                 break;
             case MOSTRAR_GRAFO:
                 mostrarGrafo(grafo);
@@ -104,6 +104,7 @@ int main(int argc, char **argv) {
 }
 
 void sair(Grafo *grafo){
+    printf("\n");
     liberaGrafo(grafo);
     exit(0);
 }
@@ -136,13 +137,14 @@ int lerNumeroInteiro(){
     return numero;
 }
 
-void lerArquivo(Grafo *grafo, char *local_arquivo, char delimitador){
-    if (grafo) liberaGrafo(grafo);
+void lerArquivo(Grafo **grafo, char *local_arquivo, char delimitador){
+    if (grafo != NULL) liberaGrafo(*grafo);
     bool local_arquivo_alocado_dinamicamente = false;
     if (local_arquivo == NULL){
         printf("\nDigite o local do arquivo: ");
         size_t tamanho_buffer = 0;
-        getline(&local_arquivo, &tamanho_buffer, stdin);
+        int read = getline(&local_arquivo, &tamanho_buffer, stdin);
+        local_arquivo[read - 1] = '\0';
         local_arquivo_alocado_dinamicamente = true;
         
     }
@@ -150,15 +152,16 @@ void lerArquivo(Grafo *grafo, char *local_arquivo, char delimitador){
         printf("\nDigite o delimitador do arquivo: ");
         delimitador = getchar();
     }
-
-    grafo = lerDeArquivo(local_arquivo, &delimitador);
-    if (grafo == NULL){
+    char string_delimitador[2];
+    string_delimitador[0] = delimitador;
+    string_delimitador[1] = '\0';
+    *grafo = lerDeArquivo(local_arquivo, string_delimitador);
+    if (*grafo == NULL){
         printf("\nERRO AO LER ARQUIVO!!!\n");
     }
 
     if (local_arquivo_alocado_dinamicamente){
         free(local_arquivo);
-        return;
     }
 }
 
@@ -169,7 +172,8 @@ void mostrarGrafo(Grafo *grafo){
 }
 
 void menorCicloHamiltonianoAproximativo(Grafo *grafo){
-    if (grafo == NULL || grafo->numero_vertices == 0) return;
+    if (grafo == NULL) return;
+    if (grafo->numero_vertices == 0) return;
     
     float peso_grafo = 0.0;
     float menor_peso = __FLT_MAX__;

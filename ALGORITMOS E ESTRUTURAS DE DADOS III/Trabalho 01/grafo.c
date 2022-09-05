@@ -361,6 +361,7 @@ int indiceGrafoContemVerticePorID(Grafo **vetor_grafos, int tamanho, int id_vert
 
 // Lê uma matriz de adjacência de um arquivo
 Grafo *lerDeArquivo(char *nome_arquivo, char *delimitador){
+    if (nome_arquivo == NULL || delimitador == NULL) return criaGrafo();;
     FILE *arquivo = fopen(nome_arquivo, "rt");
     if (arquivo == NULL) {
         return NULL;

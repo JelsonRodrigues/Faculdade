@@ -1,3 +1,5 @@
 1
+/home/jelson/Documentos/Faculdade/ALGORITMOS E ESTRUTURAS DE DADOS III/Trabalho 01/tsp3_1194.csv
+;
 3
-4
+5
