@@ -24,6 +24,6 @@ test:
 time:
 	time ./$(binario) <teste.txt
 time2:
-	time ./$(binario) --path=tsp1_253.csv --delim=';' --alg=e
+	time ./$(binario) --path=tsp4_7013.csv --delim=';' --alg=a
 clean:
 	rm *.o
