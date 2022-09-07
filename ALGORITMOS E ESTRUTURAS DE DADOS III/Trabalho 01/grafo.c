@@ -1,12 +1,13 @@
 #include "grafo.h"
 
 // Funções de grafo
-Grafo *criaGrafo(){
+Grafo *criaGrafo(int id_grafo){
     Grafo *temp = (Grafo *) malloc (sizeof(Grafo));
     if (temp == NULL){
         return NULL;
     }
 
+    temp->id_grafo = id_grafo;
     temp->numero_vertices = 0;
     temp->vertices = NULL;
 
@@ -29,6 +30,7 @@ void liberaGrafo(Grafo *grafo_liberar){
 
 void imprimeGrafo(Grafo *grafo_imprimir){
     if (grafo_imprimir) {
+        printf("\nGrafo ID: %d", grafo_imprimir->id_grafo);
         printf("\nGrafo possui %d vertices", grafo_imprimir->numero_vertices);
         for (int c = 0; c < grafo_imprimir->numero_vertices; c++){
             printf("\n");
@@ -262,16 +264,14 @@ void quicksort(void *dado, int tamanho, int (*funcao_comparadora)(void *, void *
 
 Grafo *kruskal(Grafo *grafo){
     if (grafo == NULL) return NULL;
-    int numero_arestas = 0;
+    if (grafo->vertices == NULL || grafo->numero_vertices == 0) return NULL;
+
+    int numero_arestas = numeroArestasNoGrafo(grafo);
     int indice_proxima_aresta = 0;
-    Aresta *arestas_grafo_original = NULL;
+    Aresta *arestas_grafo_original = calloc(numero_arestas, sizeof(Aresta));
+    if (arestas_grafo_original == NULL) return NULL;
 
     for(int c = 0; c < grafo->numero_vertices; c++){
-        // Aumenta o vetor das arestas
-        numero_arestas += grafo->vertices[c].numero_arestas;
-        arestas_grafo_original = (Aresta *) realloc(arestas_grafo_original, sizeof(Aresta) * numero_arestas);
-        if (arestas_grafo_original == NULL) return NULL;
-
         for (int i = 0; i < grafo->vertices[c].numero_arestas; i++){
             arestas_grafo_original[indice_proxima_aresta++] = grafo->vertices[c].arestas[i];
         }
@@ -282,14 +282,17 @@ Grafo *kruskal(Grafo *grafo){
 
     // Cria uma floresta com os vértices inicialmente todos separados, e sem as arestas
     Grafo **floresta = (Grafo **) malloc(sizeof(Grafo *) * grafo->numero_vertices);
-    if (floresta == NULL) return NULL;
+    if (floresta == NULL) {
+        free(arestas_grafo_original);
+        return NULL;
+    }
     for (int c = 0; c < grafo->numero_vertices; c++){
-        Grafo *temp = criaGrafo();
-        
+        Grafo *temp = criaGrafo(c);
         adicionarVertice(temp, criaVertice(grafo->vertices[c].id_vertice));
-
         floresta[c] = temp;
     }
+
+    Grafo *resultado = NULL;
 
     for (int c = 0; c < numero_arestas; c++) {
         // Se estão em conjuntos separados, faz a união, e adiciona a aresta que estava ligando eles ao novo grafo
@@ -304,7 +307,7 @@ Grafo *kruskal(Grafo *grafo){
             
             // Deixa o grafo que continha o vértice 02 ZERADO
             liberaGrafo(floresta[indice_grafo_vertice_02]);
-            floresta[indice_grafo_vertice_02] = criaGrafo();
+            floresta[indice_grafo_vertice_02] = NULL;
 
             // Adiciona a aresta aos dois vértices
             adicionarAresta(
@@ -316,27 +319,15 @@ Grafo *kruskal(Grafo *grafo){
                 criaAresta(arestas_grafo_original[c].id_vertice_02, arestas_grafo_original[c].id_vertice_01, arestas_grafo_original[c].peso)
             );
 
-            // Se algum grafo da floresta contém todos os vértices, então o algoritmo já finalizou
-            if (floresta[indice_grafo_vertice_01]->numero_vertices == grafo->numero_vertices){
-                break;
-            }
+        }
+        // Se algum grafo da floresta contém todos os vértices, então o algoritmo já finalizou
+        if (floresta[indice_grafo_vertice_01]->numero_vertices == grafo->numero_vertices){
+            resultado = floresta[indice_grafo_vertice_01];
+            break;
         }
     }
 
     free(arestas_grafo_original);
-
-    // Pega o grafo que contém todos os vértices do grafo original, e vai liberando os outros
-    Grafo *resultado = NULL;
-    for (int c = 0; c < grafo->numero_vertices; c++){
-        if (floresta[c]->numero_vertices == grafo->numero_vertices) {
-            resultado = floresta[c];
-        }
-        else {
-            liberaGrafo(floresta[c]);
-        }
-    }
-
-    // Libera a floresta que foi criada
     free(floresta);
 
     return resultado;
@@ -351,23 +342,25 @@ int indiceGrafoContemVertice(Grafo **vetor_grafos, int tamanho, Vertice vertice)
 }
 
 int indiceGrafoContemVerticePorID(Grafo **vetor_grafos, int tamanho, int id_vertice){
+    if (vetor_grafos == NULL || tamanho == 0) return -1;
     for (int c = 0; c < tamanho; c++){
-        if (procurarVerticePorID(vetor_grafos[c], id_vertice) != -1){
-            return c;
+        if (vetor_grafos[c] != NULL){
+            if (procurarVerticePorID(vetor_grafos[c], id_vertice) != -1){
+                return c;
+            }
         }
     }
     return -1;
 }
 
 // Lê uma matriz de adjacência de um arquivo
-Grafo *lerDeArquivo(char *nome_arquivo, char *delimitador){
-    if (nome_arquivo == NULL || delimitador == NULL) return criaGrafo();;
+Grafo *lerDeArquivo(char *nome_arquivo, char *delimitador, int id_grafo){
+    Grafo *grafo = criaGrafo(id_grafo);
+    if (nome_arquivo == NULL || delimitador == NULL) return grafo;
     FILE *arquivo = fopen(nome_arquivo, "rt");
     if (arquivo == NULL) {
         return NULL;
     }
-
-    Grafo *grafo = criaGrafo();
 
     char *buffer_linha = NULL;
     size_t tamanho_buffer = 0;
@@ -418,10 +411,9 @@ int grauDoVertice(Vertice vertice){
     return vertice.numero_arestas;
 }
 
-// Esta função retorna um grafo contendo apenas os vértices do grafo passado 
-// que tenha um grau impar. Os vértices são retornados sem arestas
-Grafo *subgrafoVerticesGrauImparSemArestas(Grafo *grafo){
-    Grafo *resultado = criaGrafo();
+Grafo *subgrafoVerticesGrauImparSemArestas(Grafo *grafo, int id_novo_grafo){
+    Grafo *resultado = criaGrafo(id_novo_grafo);
+    if (resultado == NULL) return resultado;
     for (int c = 0; c < grafo->numero_vertices; c++){
         if (grauDoVertice(grafo->vertices[c]) % 2 != 0){
             adicionarVertice(resultado, criaVertice(grafo->vertices[c].id_vertice));
@@ -430,10 +422,9 @@ Grafo *subgrafoVerticesGrauImparSemArestas(Grafo *grafo){
     return resultado;
 }
 
-// Esta função retorna um grafo contendo apenas os vértices do grafo passado 
-// que tenha um grau impar. Os vértices são retornados com as arestas normalmente
-Grafo *subgrafoVerticesGrauImpar(Grafo *grafo){
-    Grafo *resultado = criaGrafo();
+Grafo *subgrafoVerticesGrauImpar(Grafo *grafo, int id_novo_grafo){
+    Grafo *resultado = criaGrafo(id_novo_grafo);
+    if (resultado == NULL) return resultado;
     for (int c = 0; c < grafo->numero_vertices; c++){
         if (grauDoVertice(grafo->vertices[c]) % 2 != 0){
             adicionarVertice(resultado, grafo->vertices[c]);
@@ -459,7 +450,7 @@ void _visitarVertices(Grafo *grafo, Vertice vertice, int id_vertice_pai, VetorIn
 
 Grafo *recriaGrafo(Grafo *grafo_original, VetorInt *sequencia_vertices){
     if (grafo_original == NULL || sequencia_vertices == NULL) return NULL;
-    Grafo *novo_grafo = criaGrafo();
+    Grafo *novo_grafo = criaGrafo(grafo_original->id_grafo);
     for (int c = 0; c < sequencia_vertices->tamanho; c++) {
         adicionarVertice(novo_grafo, criaVertice(sequencia_vertices->vetor[c]));
     }
@@ -495,6 +486,7 @@ int numeroArestasNoGrafo(Grafo *grafo){
     return numero_arestas;
 }
 
+// Este algoritmo tem complexidade de tempo fatorial O(n!) e complexidade de espaço linear
 void percorrerTodosCaminhos(Grafo *grafo, int indice_vertice, VetorInt *indices_caminho_atual, float *menor_valor, float *maior_valor){
     if (grafo){
         // Percorreu todo um caminho
@@ -514,7 +506,6 @@ void percorrerTodosCaminhos(Grafo *grafo, int indice_vertice, VetorInt *indices_
                 *maior_valor = peso_caminho;
                 printf("\nMAIOR PESO = %.2f", *maior_valor);
             }
-
         }
         else {
             for (int c = 0; c < grafo->vertices[indice_vertice].numero_arestas; c++){

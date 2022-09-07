@@ -24,13 +24,14 @@ typedef struct {
 } Vertice;
 
 typedef struct {
+    int id_grafo;
     Vertice *vertices;
     int numero_vertices;
 } Grafo;
 
 // Funções de grafo
-Grafo *criaGrafo();
-Grafo *lerDeArquivo(char *nome_arquivo, char *delimitador);
+Grafo *criaGrafo(int id_grafo);
+Grafo *lerDeArquivo(char *nome_arquivo, char *delimitador, int id_grafo);
 void liberaGrafo(Grafo *grafo_liberar);
 void imprimeGrafo(Grafo *grafo_imprimir);
 bool adicionarVertice(Grafo *grafo, Vertice vertice);
@@ -68,8 +69,8 @@ int indiceGrafoContemVerticePorID(Grafo **vetor_grafos, int tamanho, int id_vert
 
 
 // Algoritmo de Christofides
-Grafo *subgrafoVerticesGrauImparSemArestas(Grafo *grafo);
-Grafo *subgrafoVerticesGrauImpar(Grafo *grafo);
+Grafo *subgrafoVerticesGrauImparSemArestas(Grafo *grafo, int id_novo_grafo);
+Grafo *subgrafoVerticesGrauImpar(Grafo *grafo, int id_novo_grafo);
 int numeroArestasNoGrafo(Grafo *grafo);
 VetorInt visitarVertices(Grafo *grafo, Vertice vertice);
 void _visitarVertices(Grafo *grafo, Vertice vertice, int id_vertice_pai, VetorInt *vetor_salvar);
