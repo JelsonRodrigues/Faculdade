@@ -76,8 +76,9 @@ VetorInt visitarVertices(Grafo *grafo, Vertice vertice);
 void _visitarVertices(Grafo *grafo, Vertice vertice, int id_vertice_pai, VetorInt *vetor_salvar);
 Grafo *recriaGrafo(Grafo *grafo_original, VetorInt *sequencia_vertices);
 
-// Algoritmo exato
+// Algoritmos exatos
 void percorrerTodosCaminhos(Grafo *grafo, int indice_vertice, VetorInt *indices_caminho_atual, float *menor_valor, float *maior_valor);
+VetorInt *heldKarp(Grafo *grafo);
 
 
 #endif 

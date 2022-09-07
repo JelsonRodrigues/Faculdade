@@ -519,3 +519,26 @@ void percorrerTodosCaminhos(Grafo *grafo, int indice_vertice, VetorInt *indices_
         removerItemVetorPorPosicao(indices_caminho_atual, indices_caminho_atual->tamanho - 1);
     }
 }
+
+// Implementação do algoritmo de Held-Karp que possui complexidade de tempo de O(n^2*2^n) e complexidade de espaço de O(n*2^n)
+VetorInt *heldKarp(Grafo *grafo){
+    if (grafo == NULL) return NULL;
+    
+    // Por enquanto aceita no máximo grafo com 64 vértices
+    if (grafo->numero_vertices > sizeof(long long int)) return NULL;
+
+    // Estrutura que contém o conjunto de vértices no caminho e o menor caminho entre eles
+    typedef struct {
+        long long int verticesConjunto;
+        float peso;
+    } auxHeldKarp;
+
+    // aloca inicialmente para todos os vértices
+    auxHeldKarp *melhor_caminho = (auxHeldKarp *) malloc(sizeof(auxHeldKarp) * grafo->numero_vertices);
+
+    for (int c = 1; c < grafo->numero_vertices; c++){
+        // Calcular a distância do vértice inicial para o seu primeiro vizinho e salvar o resultado
+        // Depois é só ir calculando aumentando cada vez mais
+    }
+    
+}
