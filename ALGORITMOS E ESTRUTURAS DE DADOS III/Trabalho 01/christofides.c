@@ -6,7 +6,8 @@
 #include "vetorInt.h"
 #include "grafo.h"
 
-#define NUMERO_ITERACOES_ALGORITMO_APROXIMATIVO 1000
+#define NUMERO_ITERACOES_ALGORITMO_APROXIMATIVO 10000
+#define ID_GRAFO 1
 
 // TODO: implementar o algoritmo de blossom
 
@@ -38,7 +39,7 @@ OPCAO_MENU menu();
 int lerNumeroInteiro();
 
 // Opção do menu 
-void lerArquivo(Grafo **grafo, char *local_arquivo, char delimitador);
+void lerArquivo(Grafo **grafo, char *local_arquivo, char delimitador[]);
 void mostrarGrafo(Grafo *grafo);
 void menorCicloHamiltonianoExato(Grafo *grafo);
 void menorCicloHamiltonianoAproximativo(Grafo *grafo);
@@ -47,7 +48,7 @@ void mostrarAjuda();
 bool validaParametros(int argc, char **argv);
 
 int main(int argc, char **argv) {
-    Grafo *grafo = criaGrafo();
+    Grafo *grafo = criaGrafo(ID_GRAFO);
     if (grafo == NULL) {
         exit(EXIT_FAILURE);
     }
@@ -57,7 +58,7 @@ int main(int argc, char **argv) {
     // Verificação dos parâmetros
     if (validaParametros(argc, argv)){
         char *arquivo = argv[1] + strlen("--path=");
-        char delimitador =  argv[2][strlen("--delim=")];
+        char *delimitador =  argv[2] + strlen("--delim=");
         char algoritmo = argv[3][strlen("--alg=")];
 
         lerArquivo(&grafo, arquivo, delimitador);
@@ -79,7 +80,7 @@ int main(int argc, char **argv) {
             switch (menu())
             {
             case LER_VERTICES_DE_ARQUIVO:
-                lerArquivo(&grafo, NULL, 0);
+                lerArquivo(&grafo, NULL, NULL);
                 break;
             case MOSTRAR_GRAFO:
                 mostrarGrafo(grafo);
@@ -137,31 +138,37 @@ int lerNumeroInteiro(){
     return numero;
 }
 
-void lerArquivo(Grafo **grafo, char *local_arquivo, char delimitador){
+void lerArquivo(Grafo **grafo, char *local_arquivo, char *delimitador){
     if (grafo != NULL) liberaGrafo(*grafo);
     bool local_arquivo_alocado_dinamicamente = false;
+    bool delimitador_alocado_dinamicamente = false;
     if (local_arquivo == NULL){
         printf("\nDigite o local do arquivo: ");
         size_t tamanho_buffer = 0;
         int read = getline(&local_arquivo, &tamanho_buffer, stdin);
-        local_arquivo[read - 1] = '\0';
+        local_arquivo[read - 1] = '\0'; // Remove \n
         local_arquivo_alocado_dinamicamente = true;
-        
     }
-    if (delimitador == 0){
+    if (delimitador == NULL){
         printf("\nDigite o delimitador do arquivo: ");
-        delimitador = getchar();
+        size_t tamanho_buffer = 0;
+        int read = getline(&delimitador, &tamanho_buffer, stdin);
+        delimitador[read - 1] = '\0'; // Remove \n
+        delimitador_alocado_dinamicamente = true;
     }
-    char string_delimitador[2];
-    string_delimitador[0] = delimitador;
-    string_delimitador[1] = '\0';
-    *grafo = lerDeArquivo(local_arquivo, string_delimitador);
+
+    *grafo = lerDeArquivo(local_arquivo, delimitador, ID_GRAFO);
     if (*grafo == NULL){
         printf("\nERRO AO LER ARQUIVO!!!\n");
     }
 
     if (local_arquivo_alocado_dinamicamente){
         free(local_arquivo);
+        local_arquivo = NULL;
+    }
+    if (delimitador_alocado_dinamicamente){
+        free(delimitador);
+        delimitador = NULL;
     }
 }
 
@@ -199,7 +206,6 @@ void menorCicloHamiltonianoAproximativo(Grafo *grafo){
         liberaGrafo(ciclo_hamiltoniano);
         liberarVetorInt(&vertices_percorridos);
         liberaGrafo(mst);
-
     }
 
     printf("\n\n");
