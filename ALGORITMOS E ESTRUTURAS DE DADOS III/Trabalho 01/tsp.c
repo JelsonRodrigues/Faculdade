@@ -11,14 +11,6 @@
 
 // TODO: implementar o algoritmo de blossom
 
-// Para implementar o algoritmo de forca bruta eu tenho que escolher um vertice aleatorio
-// ir de forma recursiva, mas tenho que ter uma estrutura auxiliar, uma pilha provavelmente
-// e a cada vez que chamar a funcao, adicionar no inicio o vertice atual
-// fazer um for e verificar se o proximo de cada aresta ja foi visitado (procurando na pilha),
-// se nao foi vai pra ele
-// quando todos os vertices ja tiverem sidos visitados, imprimir o caminho e o custo,
-// remover o vertice atual da pilha
-
 /* 
     A velocidade do programa será muito maior se eu implementar o vetor de vértices (grafo)
     e o vetor de arestar (vertice) de forma ordenada e realizar as buscas por procura binária
@@ -178,6 +170,8 @@ void mostrarGrafo(Grafo *grafo){
     printf("\n");
 }
 
+// Este algoritmo atualmente implementa a solucao 2-aproximativo,
+// A complexidade de tempo e a complexidade do algoritmo de kruskal O(A*A*V) e a complexidade de espaco e O(n)
 void menorCicloHamiltonianoAproximativo(Grafo *grafo){
     if (grafo == NULL) return;
     if (grafo->numero_vertices == 0) return;
@@ -214,6 +208,7 @@ void menorCicloHamiltonianoAproximativo(Grafo *grafo){
     printf("\n\n");
 }
 
+// Este algoritmo tem complexidade de tempo O(n!) e de espaco O(n) 
 void menorCicloHamiltonianoExato(Grafo *grafo){
     if (grafo == NULL || grafo->numero_vertices == 0) return;
     
