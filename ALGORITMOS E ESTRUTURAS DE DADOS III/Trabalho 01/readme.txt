@@ -8,7 +8,7 @@ nao vai ser 1.5-aproximativo.
 
 O algoritmo exato implementado foi o algoritmo forca bruta que testa todas as possibilidades,
 roda em tempo fatorial (super exponencial) e utiliza espaco constante, apos pesquisas foi descoberto
-o algoritmo de Held-Karp que executa em tempo exponencial (O(n^n*2^n)) e utiliza espaco exponencial (O(n*2^n)),
+o algoritmo de Held-Karp que executa em tempo exponencial (O(n*n*2^n)) e utiliza espaco exponencial (O(n*2^n)),
 tambem nao foi possivel implementar por falta de tempo.
 
 Varias otimizacoes podem ser relizadas no codigo, para rodar mais rapidamente, mas mesmo com todas as otimizacoes
