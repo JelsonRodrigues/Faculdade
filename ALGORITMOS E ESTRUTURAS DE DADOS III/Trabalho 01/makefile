@@ -1,9 +1,9 @@
 compilador = gcc
 flags = -Wall -Wextra -lm
-arquivo = christofides.c
+arquivo = tsp.c
 bibliotecas = grafo.c vetorInt.c
 objeto_bibliotecas = grafo.o vetorInt.o
-binario = christofides.o
+binario = tsp.o
 
 make: $(objeto_bibliotecas)
 	make bibliotecas
@@ -24,6 +24,6 @@ test:
 time:
 	time ./$(binario) <teste.txt
 time2:
-	time ./$(binario) --path=tsp4_7013.csv --delim=';' --alg=a
+	time ./$(binario) --path=tsp5_27603.csv --delim=';' --alg=a
 clean:
 	rm *.o

@@ -541,4 +541,5 @@ VetorInt *heldKarp(Grafo *grafo){
         // Depois é só ir calculando aumentando cada vez mais
     }
     
+    return NULL;
 }
