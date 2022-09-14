@@ -20,5 +20,8 @@ VetorInt criaVetorInt();
 bool estaVazio(VetorInt *vetor);
 void liberarVetorInt(VetorInt *vetor);
 int removerItemVetorPorPosicao(VetorInt *vetor, int posicao);
+void inverterVetor(VetorInt vetor);
+
+#define swap(x, y) (x ^= y ^= x ^= y) 
 
 #endif

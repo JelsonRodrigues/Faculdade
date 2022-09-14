@@ -486,6 +486,146 @@ int numeroArestasNoGrafo(Grafo *grafo){
     return numero_arestas;
 }
 
+GrafoMatriz converteGrafoParaGrafoMatriz(Grafo *grafo_converter){
+    GrafoMatriz novo_grafo;
+    if (grafo_converter){
+        novo_grafo.numero_vertices = grafo_converter->numero_vertices;
+        novo_grafo.pesos = (float **) malloc(sizeof(float*) * novo_grafo.numero_vertices);
+
+        if (novo_grafo.pesos){
+            for (int c = 0; c < novo_grafo.numero_vertices; c++){
+                novo_grafo.pesos[c] = (float *) malloc(sizeof(float) * novo_grafo.numero_vertices);
+                
+                if (novo_grafo.pesos[c]) {
+                    for (int i = 0; i < novo_grafo.numero_vertices; i++){
+                        novo_grafo.pesos[c][i] = grafo_converter->vertices[c].arestas[procurarArestaPorID(grafo_converter->vertices[c], i)].peso;
+                    }
+                }
+            }
+        }
+    }
+    return novo_grafo;
+}
+void liberaGrafoMatriz(GrafoMatriz grafo_liberar){
+    if (grafo_liberar.pesos){
+        for(int c = 0; c < grafo_liberar.numero_vertices; c++){
+            if (grafo_liberar.pesos[c]) {
+                free(grafo_liberar.pesos[c]);
+                grafo_liberar.pesos[c] = NULL;
+            }
+        }
+        free(grafo_liberar.pesos);
+        grafo_liberar.pesos = NULL;
+        grafo_liberar.numero_vertices = 0;
+    }
+}
+void imprimeGrafoMatriz(GrafoMatriz *grafo_imprimir){
+    if (grafo_imprimir){
+        for (int c = 0; c < grafo_imprimir->numero_vertices; c++){
+            printf("\n%d:\t", c);
+            for (int i = 0; i < grafo_imprimir->numero_vertices; i++){
+                printf("%.2f\t", grafo_imprimir->pesos[c][i]);
+            }
+        }
+    }
+}
+
+// Este algoritmo percorre todos os caminhos utilizando o algoritmo ordem lexicográfica para gerar as permutações 
+// e utiliza uma matriz de adjacência como grafo, tem complexidade de tempo O(n!) é o mais eficiente implementado
+void percorreTodosCaminhosGrafoMatriz(GrafoMatriz *matriz, VetorInt *vetorPermutacao,  float *menor_valor, float *maior_valor){
+    quicksort(vetorPermutacao->vetor, vetorPermutacao->tamanho, &ordemCrescendente, sizeof(int));
+    float peso_caminho = 0.0f;
+    VetorInt subvertorPermutar = {.tamanho = vetorPermutacao->tamanho - 1, .vetor=vetorPermutacao->vetor+1};
+    
+    long long unsigned total_testar = 1;
+    for (int c = 1; c <= matriz->numero_vertices - 1; c++){
+        total_testar *= c;
+    }
+    long long unsigned atual = 0;
+    do {
+        peso_caminho = 0.0f;
+        for (int c = 0; c < vetorPermutacao->tamanho; c++){
+            peso_caminho += matriz->pesos[vetorPermutacao->vetor[(c) % vetorPermutacao->tamanho]][vetorPermutacao->vetor[(c + 1) % vetorPermutacao->tamanho]];
+        }
+        if (peso_caminho < *menor_valor) {
+            *menor_valor = peso_caminho;
+            printf("\nMENOR PESO = %.2f", *menor_valor);
+        }
+        if (peso_caminho > *maior_valor) {
+            *maior_valor = peso_caminho;
+            printf("\nMAIOR PESO = %.2f", *maior_valor);
+        }
+
+        // Jogar em uma thread separada ??
+        if (atual == ((atual >> 17) << 17)){ // Múltiplo de 131072
+            printf("\nProgress %llu / %llu  : %0.3f%%", atual, total_testar,  ((double)atual / (double)total_testar) * 100.0 );
+        }
+        atual++;
+    } while (proximaOrdemLexicografica(&subvertorPermutar));
+}
+
+// Este algoritmo percorre todos os caminhos utilizando o algoritmo de Heap para gerar as permutações 
+// e utiliza uma matriz de adjacência como grafo, complexidade de tempo O(n!)
+void percorreTodosCaminhosGrafoMatrizUsandoHeap(GrafoMatriz *matriz, VetorInt *vetorPermutacao,  float *menor_valor, float *maior_valor, int tamanho){
+    if (tamanho == 1){
+        float peso_caminho = 0.0f;
+        int numero_vertices = matriz->numero_vertices;
+        for (int c = 0; c < vetorPermutacao->tamanho; c++){
+            peso_caminho += matriz->pesos[vetorPermutacao->vetor[(c) % numero_vertices]][vetorPermutacao->vetor[(c + 1) % numero_vertices]];
+        }
+        if (peso_caminho < *menor_valor) {
+            *menor_valor = peso_caminho;
+            printf("\nMENOR PESO = %.2f", *menor_valor);
+        }
+        if (peso_caminho > *maior_valor) {
+            *maior_valor = peso_caminho;
+            printf("\nMAIOR PESO = %.2f", *maior_valor);
+        }
+        return;
+    }
+    
+    for (int c = 0; c < tamanho; c++){
+        percorreTodosCaminhosGrafoMatrizUsandoHeap(matriz, vetorPermutacao, menor_valor, maior_valor, tamanho - 1);
+        // Tamamnho é ímpar?
+        if (tamanho & 0b1){
+            // Troca o primeiro e o último
+            if (vetorPermutacao->vetor[0] != vetorPermutacao->vetor[tamanho -1]) swap(vetorPermutacao->vetor[0], vetorPermutacao->vetor[tamanho -1]);
+        }
+        // Tamanho é par?
+        else {
+            // Troca o indice e o último
+            if (vetorPermutacao->vetor[c] != vetorPermutacao->vetor[tamanho -1]) swap(vetorPermutacao->vetor[c], vetorPermutacao->vetor[tamanho -1]);
+        }
+    }
+}
+
+int ordemDecrscendente(void *a, void *b){
+    if (*(int*)a > *(int*)b ) return -1;
+    if (*(int*)a < *(int*)b ) return 1;
+    return 0;
+}
+int ordemCrescendente(void *a, void *b){
+    if (*(int*)a > *(int*)b ) return 1;
+    if (*(int*)a < *(int*)b ) return -1;
+    return 0;
+}
+
+bool proximaOrdemLexicografica(VetorInt *vetor){
+    int i = vetor->tamanho - 1;
+    int j = vetor->tamanho - 1;
+    while (i > 1 && vetor->vetor[i - 1] > vetor->vetor[i]){i--;}
+    i--;
+    while (j > i && vetor->vetor[j] < vetor->vetor[i]){j--;}
+
+    if (i != j){
+        if (vetor->vetor[i] != vetor->vetor[j]) swap(vetor->vetor[i], vetor->vetor[j]);
+        inverterVetor((VetorInt) {.tamanho = vetor->tamanho - (i + 1), .vetor= vetor->vetor + (i + 1)});
+        return true;
+    }
+
+    return false;
+}
+
 // Este algoritmo tem complexidade de tempo fatorial O(n!) e complexidade de espaço linear
 void percorrerTodosCaminhos(Grafo *grafo, int indice_vertice, VetorInt *indices_caminho_atual, float *menor_valor, float *maior_valor){
     if (grafo){

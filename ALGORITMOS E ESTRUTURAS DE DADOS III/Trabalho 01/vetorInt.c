@@ -96,3 +96,10 @@ void liberarVetorInt(VetorInt *vetor){
         vetor->tamanho = 0;
     }
 }
+
+void inverterVetor(VetorInt vetor){
+    int metade = vetor.tamanho >> 1;
+    for (int c = 0; c < metade; c++){
+        if (vetor.vetor[c] != vetor.vetor[vetor.tamanho - c - 1]) swap(vetor.vetor[c], vetor.vetor[vetor.tamanho - c - 1]);
+    }
+}

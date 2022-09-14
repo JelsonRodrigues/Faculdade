@@ -214,12 +214,35 @@ void menorCicloHamiltonianoExato(Grafo *grafo){
     
     printf("\n\n\nRODANDO O ALGORITMO EXATO!!!");
 
-    int pos_vertice_inicial = rand() % grafo->numero_vertices;
     VetorInt indices_percorridos = criaVetorInt();
-    adicionaItemVetor(&indices_percorridos, pos_vertice_inicial);
     float min = __FLT_MAX__;
     float max = __FLT_MIN__;
-    percorrerTodosCaminhos(grafo, pos_vertice_inicial, &indices_percorridos, &min, &max);
+    
+    /* Utilizar a forma recursiva - a a mais lenta */
+
+    // int verticeInicial = rand() % grafo->numero_vertices;
+    // adicionaItemVetor(&indices_percorridos, verticeInicial);
+    // percorrerTodosCaminhos(grafo, verticeInicial, &indices_percorridos, &min, &max);
+
+
+    /* Utilizar o algoritmo de Heap - mais rápido que a forma recursiva */
+
+    // for (int c = 0; c < grafo->numero_vertices; c++){
+    //     adicionaItemVetor(&indices_percorridos, c);
+    // }
+    // GrafoMatriz grafo_matriz = converteGrafoParaGrafoMatriz(grafo);
+    // percorreTodosCaminhosGrafoMatrizUsandoHeap(&grafo_matriz, &indices_percorridos, &min, &max, grafo_matriz.numero_vertices);
+    // liberaGrafoMatriz(grafo_matriz);
+
+
+    /* Utilizar ordem lexicográfica - a forma mais rápida */
+
+    for (int c = 0; c < grafo->numero_vertices; c++){
+        adicionaItemVetor(&indices_percorridos, c);
+    }
+    GrafoMatriz grafo_matriz = converteGrafoParaGrafoMatriz(grafo);
+    percorreTodosCaminhosGrafoMatriz(&grafo_matriz, &indices_percorridos, &min, &max);
+    liberaGrafoMatriz(grafo_matriz);
     
     liberarVetorInt(&indices_percorridos);
     printf("\nMENOR CAMINHO -> %f", min);

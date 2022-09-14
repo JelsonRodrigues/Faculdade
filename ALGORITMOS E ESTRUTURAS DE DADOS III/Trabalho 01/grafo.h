@@ -29,6 +29,11 @@ typedef struct {
     int numero_vertices;
 } Grafo;
 
+typedef struct {
+    int numero_vertices;
+    float **pesos;
+} GrafoMatriz;
+
 // Funções de grafo
 Grafo *criaGrafo(int id_grafo);
 Grafo *lerDeArquivo(char *nome_arquivo, char *delimitador, int id_grafo);
@@ -39,6 +44,14 @@ bool removerVertice(Grafo *grafo, Vertice vertice);
 bool removerVerticePorId(Grafo *grafo, int id_vertice);
 int procurarVerticePorID(Grafo *grafo_procurar, int id_vertice);
 float pesoTotalGrafo(Grafo *grafo);
+GrafoMatriz converteGrafoParaGrafoMatriz(Grafo *grafo_converter);
+void liberaGrafoMatriz(GrafoMatriz grafo_liberar);
+void imprimeGrafoMatriz(GrafoMatriz *grafo_imprimir);
+void percorreTodosCaminhosGrafoMatriz(GrafoMatriz *matriz, VetorInt *vetorPermutacao,  float *menor_valor, float *maior_valor);
+void percorreTodosCaminhosGrafoMatrizUsandoHeap(GrafoMatriz *matriz, VetorInt *vetorPermutacao,  float *menor_valor, float *maior_valor, int tamanho);
+int ordemDecrscendente(void *a, void *b);
+int ordemCrescendente(void *a, void *b);
+bool proximaOrdemLexicografica(VetorInt *vetor);
 
 // Funções de Vértice
 Vertice criaVertice(int id_vertice);
