@@ -13,7 +13,7 @@ bibliotecas:
 mtest:
 	valgrind --leak-check=full ./$(binario)
 mtest_auto:
-	valgrind --leak-check=full ./$(binario) <teste.txt
+	valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all -s ./$(binario) <teste.txt
 otimizado:
 	$(compilador) -O3 -c $(bibliotecas) 
 	$(compilador) -O3 -o $(binario) $(arquivo) $(objeto_bibliotecas)
@@ -24,6 +24,6 @@ test:
 time:
 	time ./$(binario) <teste.txt
 time2:
-	time ./$(binario) --path=special.csv --delim=';' --alg=e
+	time ./$(binario) --path=./tsp1_253.csv --delim=';' --alg=e
 clean:
 	rm *.o

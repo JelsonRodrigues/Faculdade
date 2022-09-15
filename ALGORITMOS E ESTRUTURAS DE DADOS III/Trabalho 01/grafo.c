@@ -530,6 +530,34 @@ void imprimeGrafoMatriz(GrafoMatriz *grafo_imprimir){
     }
 }
 
+void testaCaminhosInRange(GrafoMatriz *matriz, VetorInt *vetorPermutacao,  float *menor_valor, float *maior_valor, unsigned long long int final){
+    float peso_caminho = 0.0f;
+    VetorInt subvertorPermutar = {.tamanho = vetorPermutacao->tamanho - 1, .vetor=vetorPermutacao->vetor+1};
+    
+    long long unsigned atual = 0;
+    for (atual = 0; atual < final; atual++){
+        peso_caminho = 0.0f;
+        for (int c = 0; c < vetorPermutacao->tamanho; c++){
+            peso_caminho += matriz->pesos[vetorPermutacao->vetor[(c) % vetorPermutacao->tamanho]][vetorPermutacao->vetor[(c + 1) % vetorPermutacao->tamanho]];
+        }
+        if (peso_caminho < *menor_valor) {
+            *menor_valor = peso_caminho;
+            printf("\nMENOR PESO = %.2f", *menor_valor);
+        }
+        if (peso_caminho > *maior_valor) {
+            *maior_valor = peso_caminho;
+            printf("\nMAIOR PESO = %.2f", *maior_valor);
+        }
+
+        // Jogar em uma thread separada ??
+        if (atual == ((atual >> 17) << 17)){ // Múltiplo de 131072
+            printf("\nProgress %llu / %llu  : %0.3f%%", atual, final,  ((double)atual / (double)final) * 100.0 );
+        }
+        
+        if (!proximaOrdemLexicografica(&subvertorPermutar)) break;
+    } 
+}
+
 // Este algoritmo percorre todos os caminhos utilizando o algoritmo ordem lexicográfica para gerar as permutações 
 // e utiliza uma matriz de adjacência como grafo, tem complexidade de tempo O(n!) é o mais eficiente implementado
 void percorreTodosCaminhosGrafoMatriz(GrafoMatriz *matriz, VetorInt *vetorPermutacao,  float *menor_valor, float *maior_valor){
@@ -537,10 +565,7 @@ void percorreTodosCaminhosGrafoMatriz(GrafoMatriz *matriz, VetorInt *vetorPermut
     float peso_caminho = 0.0f;
     VetorInt subvertorPermutar = {.tamanho = vetorPermutacao->tamanho - 1, .vetor=vetorPermutacao->vetor+1};
     
-    long long unsigned total_testar = 1;
-    for (int c = 1; c <= matriz->numero_vertices - 1; c++){
-        total_testar *= c;
-    }
+    long long unsigned total_testar = fatorial(matriz->numero_vertices);
     long long unsigned atual = 0;
     do {
         peso_caminho = 0.0f;
@@ -624,6 +649,46 @@ bool proximaOrdemLexicografica(VetorInt *vetor){
     }
 
     return false;
+}
+
+unsigned long long int fatorial(int numero){
+    unsigned long long int fatorial = 1;
+    for (int c = 1; c <= numero - 1; c++){
+        fatorial *= c;
+    }
+    return fatorial;
+}
+
+VetorInt ordemLexicograficaN(VetorInt vetor, unsigned long long int n){
+    unsigned long long int fatorial_numero = fatorial(vetor.tamanho);
+
+    // Ordena de forma crescente os valores
+    quicksort(vetor.vetor, vetor.tamanho, &ordemCrescendente, sizeof(int));
+
+    // Diminui 1 no valor de n
+    n--;
+
+    // Cria um vetor com um indice para cada item do conjunto
+    VetorInt indices = criaVetorInt();
+    for (int c = 0; c < vetor.tamanho; c++){
+        adicionaItemVetor(&indices, c);
+    }
+    VetorInt ordem = criaVetorInt();
+
+    long long unsigned int resto_anterior = n;;
+    int indice_prox_valor = 0;
+    while (indices.tamanho > 0 && fatorial_numero >= 1){
+        indice_prox_valor = resto_anterior / fatorial_numero;
+        resto_anterior %= fatorial_numero;
+        if (indices.tamanho - 1 > 0){
+            fatorial_numero /= indices.tamanho - 1;
+        }
+
+        inserirItemNaPosicao(&ordem, -1, vetor.vetor[removerItemVetorPorPosicao(&indices, indice_prox_valor)]);
+    }
+    
+    liberarVetorInt(&indices);
+    return ordem;
 }
 
 // Este algoritmo tem complexidade de tempo fatorial O(n!) e complexidade de espaço linear

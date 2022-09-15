@@ -32,7 +32,7 @@ int removerItemVetorPorPosicao(VetorInt *vetor, int posicao) {
         if (posicao >=0 && posicao < vetor->tamanho){
             int valor = vetor->vetor[posicao];
             if (posicao < vetor->tamanho - 1){
-                memmove(&vetor->vetor[posicao], &vetor->vetor[posicao + 1], sizeof(int) * (vetor->tamanho - posicao));
+                memmove(&vetor->vetor[posicao], &vetor->vetor[posicao + 1], sizeof(int) * (vetor->tamanho - posicao - 1));
             }
             vetor->tamanho--;
             vetor->vetor = realloc(vetor->vetor, vetor->tamanho * sizeof(int));
@@ -58,9 +58,10 @@ int pegarItemDoVetor(VetorInt *vetor, int posicao){
 void inserirItemNaPosicao(VetorInt *vetor_inserir, int posicao, int valor_inserir){
     if (vetor_inserir){
         if (posicao < 0) {
+            if (vetor_inserir->tamanho == 0) posicao = 0;
             posicao += vetor_inserir->tamanho;
         }
-        if (posicao < vetor_inserir->tamanho && posicao >= 0){
+        if ((posicao < vetor_inserir->tamanho && posicao >= 0) || (posicao == 0 && vetor_inserir->tamanho == posicao) ){
             if (posicao == vetor_inserir->tamanho - 1){
                 adicionaItemVetor(vetor_inserir, valor_inserir);
                 return;

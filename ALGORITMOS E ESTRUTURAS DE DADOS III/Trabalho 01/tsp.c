@@ -236,13 +236,49 @@ void menorCicloHamiltonianoExato(Grafo *grafo){
 
 
     /* Utilizar ordem lexicográfica - a forma mais rápida */
+    // for (int c = 0; c < grafo->numero_vertices; c++){
+    //     adicionaItemVetor(&indices_percorridos, c);
+    // }
+
+    // GrafoMatriz grafo_matriz = converteGrafoParaGrafoMatriz(grafo);
+    // percorreTodosCaminhosGrafoMatriz(&grafo_matriz, &indices_percorridos, &min, &max);
+    // liberaGrafoMatriz(grafo_matriz);
+
+    /* Quebrando os testes em threads usando ordem lexicografica, talvez a forma mais rapida de todas */
 
     for (int c = 0; c < grafo->numero_vertices; c++){
         adicionaItemVetor(&indices_percorridos, c);
     }
+    
+    // int numero_threads = 4;
+    // VetorInt ordem_n[numero_threads];
+    // float resultados[numero_threads][2];
+    // GrafoMatriz grafo_matriz = converteGrafoParaGrafoMatriz(grafo);
+    // long long unsigned int testes_por_thread = fatorial(grafo_matriz.numero_vertices-1);
+
+    // for (int c = 0; c <=numero_threads; c++){
+    //     ordem_n[c] = ordemLexicograficaN(indices_percorridos, (testes_por_thread) * c);
+    //     resultados[c][0] = min;
+    //     resultados[c][0] = max;
+
+    //     Como colocar isso em cada thread????
+    //     testaCaminhosInRange(&grafo_matriz, &ordem_n[c], &resultados[c][0], &resultados[c][1], testes_por_thread);
+    // }
+    // liberaGrafoMatriz(grafo_matriz);
+
+    // for (int c = 0; c <=numero_threads; c++){
+    //     if (resultados[c][0] < min) min = resultados[c][0];
+    //     if (resultados[c][1] > min) min = resultados[c][1];
+    //     liberarVetorInt(&ordem_n[c]);
+    // }
+        
+
+    VetorInt ordem_n = ordemLexicograficaN(indices_percorridos, 1);
     GrafoMatriz grafo_matriz = converteGrafoParaGrafoMatriz(grafo);
-    percorreTodosCaminhosGrafoMatriz(&grafo_matriz, &indices_percorridos, &min, &max);
+    testaCaminhosInRange(&grafo_matriz, &ordem_n, &min, &max, fatorial(grafo_matriz.numero_vertices));
     liberaGrafoMatriz(grafo_matriz);
+    liberarVetorInt(&ordem_n);
+
     
     liberarVetorInt(&indices_percorridos);
     printf("\nMENOR CAMINHO -> %f", min);

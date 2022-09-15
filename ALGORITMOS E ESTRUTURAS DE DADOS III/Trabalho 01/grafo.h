@@ -52,6 +52,9 @@ void percorreTodosCaminhosGrafoMatrizUsandoHeap(GrafoMatriz *matriz, VetorInt *v
 int ordemDecrscendente(void *a, void *b);
 int ordemCrescendente(void *a, void *b);
 bool proximaOrdemLexicografica(VetorInt *vetor);
+VetorInt ordemLexicograficaN(VetorInt vetor, unsigned long long int n);
+unsigned long long int fatorial(int numero);
+void testaCaminhosInRange(GrafoMatriz *matriz, VetorInt *vetorPermutacao,  float *menor_valor, float *maior_valor, unsigned long long int final);
 
 // Funções de Vértice
 Vertice criaVertice(int id_vertice);
