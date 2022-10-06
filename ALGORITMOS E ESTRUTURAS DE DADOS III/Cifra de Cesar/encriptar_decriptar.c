@@ -3,18 +3,28 @@
 #include <stdbool.h>
 #include <string.h>
 
+#define CHAVES_TESTAR 26
+
 char *encriptar(char *mensagem, int chave, const char inicio_tabela_ascii, const char final_tabela_ascii);
 char *desencriptar(char *mensagem_encriptada, int chave, const char inicio_tabela_ascii, const char final_tabela_ascii);
 char *lerDeArquivo(char *nome_arquivo);
 
-int main(){
+int main(int argc, char **argv){
+    if (argc < 2) {
+        printf("\nA forma de utilizar o programa e:");
+        printf("\n %s nome_arquivo.txt", argv[0]);
+        printf("\n");
+        exit(EXIT_FAILURE);
+    }
     char *mensagem = lerDeArquivo("./teste.txt");
-    char *mensagem_desencriptada = desencriptar(mensagem, 7, 'A', 'Z');
     printf("\nLido: \n%s", mensagem);
-    printf("\n\nDesencriptada: \n%s", mensagem_desencriptada);
-    printf("\n");
+    for (int c = 0; c < CHAVES_TESTAR; c++){
+        char *mensagem_desencriptada = desencriptar(mensagem, c, 'A', 'Z');
+        printf("\n\nDesencriptada: chave %d \n%s", c, mensagem_desencriptada);
+        printf("\n");
+        if (mensagem_desencriptada) free(mensagem_desencriptada);
+    }
     if (mensagem) free(mensagem);
-    if (mensagem_desencriptada) free(mensagem_desencriptada);
     return 0;
 }
 
